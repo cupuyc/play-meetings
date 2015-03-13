@@ -1,0 +1,22 @@
+@(list: List[String])
+
+@main("") {
+
+    <div id="main">
+        <div id="viewport">
+            <p>
+                <button type="button" class="btn btn-primary" onclick="location.reload();">Refresh</button>
+            </p>
+            <label>Game info</label>
+            @list.grouped(3).map { group =>
+                <ul>
+                    @group.map { item =>
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <!--<script type="text/javascript" src="@routes.Assets.at("javascripts/game.js")"></script>-->
+}
