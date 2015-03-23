@@ -39,7 +39,30 @@
                 <button type="button" class="btn btn-danger" id="commandClearButton">Clear</button>
             </form>
         </div>
+
+        @*<div>*@
+            @*<h3>Local stream</h3>*@
+            @*<video id="videoInput" autoplay width="480px" height="360px"*@
+            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
+        @*</div>*@
+
+        @*<div>*@
+            @*<h3>Remote stream</h3>*@
+            @*<video id="videoOutput" autoplay width="480px" height="360px"*@
+            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
+        @*</div>*@
+
+        <div id="participants">
+            <!-- Place for participants -->
+        </div>
     </div>
 
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/game.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/kurento-utils.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
+    @*<script type="text/javascript" src="@routes.Assets.at("javascripts/conferenceroom.js")"></script>*@
+
+    <script type="text/javascript" src="@routes.Assets.at("/javascripts/game.js")"></script>
+
+
 }

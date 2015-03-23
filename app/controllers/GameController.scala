@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 import actor.game.HostActor
@@ -38,7 +39,7 @@ object GameController extends Controller {
   }
 
   def logout = Action { implicit request =>
-    Redirect("/").withNewSession;
+    Redirect("/").withNewSession
   }
 
   def admin = Action.async {
@@ -68,11 +69,13 @@ object GameController extends Controller {
   }
 
   def stream(room: String = "default") = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
-    Future.successful(request.session.get(UID) match {
-      case None => Left(Forbidden)
-      case Some(uid) =>
-        Right(UserActor.props(uid, defaultHostActorRef))
-    })
+    val uid = UUID.randomUUID().toString().substring(0, 4)
+    Future.successful(Right(UserActor.props(uid, defaultHostActorRef)))
+//    Future.successful(request.session.get(UID) match {
+//      case None => Left(Forbidden)
+//      case Some(uid) =>
+//        Right(UserActor.props(uid, defaultHostActorRef))
+//    })
   }
 }
 

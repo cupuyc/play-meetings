@@ -1,8 +1,15 @@
-Tasks:
-1. Create layout UI. We need 3 sections layouted as in http://trembit.com/upload/j3inyx7o.png:
- - chat are as it is on that page https://bistri.com/bistridemo/conf. 
- - video area, with 2 panels. One for me and one for remote user.
- - content area. For now it should be empty
-2. Put buttons over own video. Enable/disable video. Enable/disable audio. Change remote user volume slider.
-3. Load some image in content area and add controls for: zoom, drag. So it can be like image viewer.
-4. Style better chat. Maybe like from like https://togetherjs.com/examples/drawing/
+This is your new Play application
+=================================
+
+This file will be packaged with your application, when using `activator dist`.
+
+
+To create idea project with sources run:
+1. "activator" to enter console
+2. "idea with-sources=yes"
+
+Helpful sbt commands:
+ - reload
+ - clean
+ - test
+ - idea with-sources=yes

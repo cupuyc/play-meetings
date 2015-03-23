@@ -15,6 +15,7 @@ class UserActor(var uid: String, boardRef: ActorRef, out: ActorRef) extends Acto
   override def preStart() = {
     boardRef ! ActorSubscribe(uid)
   }
+
   def receive = LoggingReceive {
     // resend from board to all
     case msg: ServerMessage =>

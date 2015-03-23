@@ -8,6 +8,10 @@ import play.api.libs.json._
 
 import scala.collection.immutable.HashMap
 
+object Prefix {
+  var USER = "user"
+  var CHAT = "chat"
+}
 
 case class ActorMessage(uuid: String, s: String)
 case class ActorSubscribe(uid: String, name: String = "")
@@ -32,6 +36,7 @@ abstract class ServerMessage {
         case n: Integer => new JsNumber(new BigDecimal(n))
         case s: String => JsString(s)
         case b: Boolean => JsBoolean(b)
+        case js: JsValue => js
         case _ => new JsUndefined("Unknown obj")
       }
       result = result + (field.getName -> jsValue )
@@ -40,7 +45,7 @@ abstract class ServerMessage {
   }
 }
 
-class ConnectedMessage(var pid: String, activeGame: String = "") extends ServerMessage {
+class ConnectedMessage(var pid: String, serverTime: Int) extends ServerMessage {
   var messageType: String = "youAre"
 }
 
@@ -49,6 +54,15 @@ class PainterMessage(var pid : String,
   var size: Number,
   var color: String) extends ServerMessage {
   var messageType: String = "painter"
+}
+
+class ChangeBracketMessage(val bracket: String, val id : String, var value: JsValue) extends ServerMessage {
+  var key = bracket + "." + id
+  var messageType: String = "change"
+}
+
+class ChangeMessage(val key: String, var value: JsValue) extends ServerMessage {
+  var messageType: String = "change"
 }
 
 class UserMessage(var pid : String, var name: String) extends ServerMessage {
