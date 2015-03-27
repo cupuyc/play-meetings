@@ -1,3 +1,5 @@
 .idea
+.svn
+.git
 target
 project/target

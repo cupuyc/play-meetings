@@ -1,5 +1,10 @@
 (function () {
 
+    window.onload = function() {
+        console.log("Page loaded ...");
+        console = new Console('console', console);
+    }
+
     function removeError() {
         $('#error').fadeOut(500);
     }

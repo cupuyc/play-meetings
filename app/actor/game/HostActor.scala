@@ -40,7 +40,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
   def broadcastStatus() = {
     val allUsers = users.values.map(user => user.name).mkString(", ")
     for ((userAct, user) <- users) {
-      userAct ! new StatusMessage("You are " + user.uid + " " + user.name + ". In lobby.", s"Users: $allUsers");
+      userAct ! new StatusMessage("You are " + user.id + " " + user.name + ". In lobby.", s"Users: $allUsers");
     }
   }
 
@@ -56,7 +56,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
   def changeUserName(user: UserInfo, name: String) = {
     user.name = name
-    broadcastMessage(new ChangeBracketMessage(Prefix.USER, user.uid, user.toJson))
+    broadcastMessage(new ChangeBracketMessage(Prefix.USER, user.id, user.toJson))
   }
 
   def receive = LoggingReceive {
@@ -131,14 +131,14 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
       users.remove(actorRef) match {
         case Some(leaveUser) =>
           for ((userAct, user) <- users) {
-            userAct ! new ChangeBracketMessage(Prefix.USER, leaveUser.uid, null)
+            userAct ! new ChangeBracketMessage(Prefix.USER, leaveUser.id, null)
           }
         case _ => println("Error: leave user wasn't found " + actorRef)
       }
 
 
     case AdminStatus =>
-      sender ! AdminStatusReply(roomName, users.values.map(userInfo => "(" + userInfo.uid + ")" + userInfo.name), 0)
+      sender ! AdminStatusReply(roomName, users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name), 0)
   }
 
   def doJoinUser(uid: String, name: String): Unit = {
@@ -149,12 +149,12 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
     // #1 send who user is and server time
     sender ! new ConnectedMessage(uid, 0)
-    sender ! new ChangeBracketMessage(Prefix.USER, joinUser.uid, joinUser.toJson)
+    sender ! new ChangeBracketMessage(Prefix.USER, joinUser.id, joinUser.toJson)
 
     // #2 notify all alive users and send users data to connected user
     for ((userAct, user) <- users) {
-      sender ! new ChangeBracketMessage(Prefix.USER, user.uid, user.toJson)
-      userAct ! new ChangeBracketMessage(Prefix.USER, joinUser.uid, joinUser.toJson)
+      sender ! new ChangeBracketMessage(Prefix.USER, user.id, user.toJson)
+      userAct ! new ChangeBracketMessage(Prefix.USER, joinUser.id, joinUser.toJson)
     }
     users.put(sender, joinUser)
 
@@ -165,8 +165,8 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
   }
 }
 
-class UserInfo(var uid: String,
+class UserInfo(var id: String,
                var actorRef: ActorRef,
                var name: String = "New User") {
-  def toJson = Json.obj("name" -> name, "uid" -> uid)
+  def toJson = Json.obj("name" -> name, "id" -> id)
 }

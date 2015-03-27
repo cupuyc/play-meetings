@@ -26,9 +26,11 @@
             <p>&nbsp;</p>
 
             <label for="chatArea">Chat</label>
-            <div id="chatArea" class="pre-scrollable" style="height: 150px">
+            <div id="chatArea">
+            </div>
 
-        </div>
+            <label class="control-label" for="console">Console</label>
+            <div id="console" class="pre-scrollable" style="height: 150px"></div>
         </div>
         <div>
             <form id="commandForm" role="form" class="form-inline">
@@ -57,6 +59,7 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/console.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/kurento-utils.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
