@@ -2,7 +2,7 @@
 
     window.onload = function() {
         console.log("Page loaded ...");
-        console = new Console('console', console);
+        //console = new Console('console', console);
     }
 
     function removeError() {
@@ -77,7 +77,7 @@
 
     function receiveVideo(sender) {
         console.log("receiveVideo " + sender)
-        var participant = new Participant(sender, sendBroadcast);
+        var participant = new Participant(sender, sendBroadcast, false);
         participants[sender] = participant;
         var video = participant.getVideoElement();
         participant.rtcPeer = kurentoUtils.WebRtcPeer.startRecvOnly(video,
@@ -118,7 +118,7 @@
             }
         };
         console.log(pid + " registered in room " + room);
-        var participant = new Participant(pid, sendBroadcast);
+        var participant = new Participant(pid, sendBroadcast, true);
         participants[pid] = participant;
         var video = participant.getVideoElement();
         participant.rtcPeer = kurentoUtils.WebRtcPeer.startSendOnly(video,
@@ -185,7 +185,11 @@
     }
 
     function sendBroadcast(userId, offerSdp) {
-        send({messageType: "command", data: "broadcast", sdpOffer: offerSdp});
+        if (userId == pid) {
+            send({messageType: "command", data: "broadcast", sdpOffer: offerSdp});
+        } else {
+            send({messageType: "command", data: "subscribe", sdpOffer: offerSdp, subscribeId: userId});
+        }
     }
 
 

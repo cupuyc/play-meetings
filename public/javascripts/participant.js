@@ -24,9 +24,11 @@ const PARTICIPANT_CLASS = 'participant';
  *                        The tag of the new element will be 'video<name>'
  * @return
  */
-function Participant(name, sendFunction) {
+function Participant(name, sendFunction, isLocalUser) {
 	this.name = name;
     this.sendFunction = sendFunction;
+    this.isLocalUser = isLocalUser;
+
 	var container = document.createElement('div');
 	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
 	container.id = name;

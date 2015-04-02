@@ -17,10 +17,14 @@ import scala.concurrent.duration._
 
 class HostActor(val roomName: String = "Default") extends Actor with ActorLogging {
 
-  val kurento: KurentoClient = KurentoClient.create("ws://192.168.1.153:8888/kurento")
+  val kurento: KurentoClient = KurentoClient.create("ws://192.168.1.153:8881/kurento")
   val pipeline: MediaPipeline = kurento.createMediaPipeline()
+
+  // incoming user broadcasts
   val incomingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
-  val outgoingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
+
+  // outgoing user broadcasts per each user
+  val outgoingMedia: mutable.HashMap[(String, String), WebRtcEndpoint] = new mutable.HashMap[(String, String), WebRtcEndpoint]
 
   var users = mutable.HashMap[ActorRef, UserInfo]()
   var pendingUsers = mutable.HashMap[ActorRef, String]()
@@ -83,25 +87,41 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
       incomingMedia.put(user.id, incoming)
     }
 
-    // create out stream
-    var outgoing: WebRtcEndpoint = outgoingMedia.get(user.id).getOrElse(null)
-    if (outgoing == null) {
-      outgoing = new WebRtcEndpoint.Builder(pipeline).build
-      outgoingMedia.put(user.id, outgoing)
-    }
-
-    outgoing.connect(incoming)
-
     sender !  new SdpAnswerMessage(user.id, incoming.processOffer(sdpOffer))
   }
 
+
+  def doUserSubscribe(user: UserInfo, js: JsValue) = {
+    val subscribeId = (js \ "subscribeId").as[String]
+    println(s"Subscribe request from ${user.id} to $subscribeId")
+    val sdpOffer = (js \ "sdpOffer").as[String]
+
+    // create in stream
+    var incoming: WebRtcEndpoint = incomingMedia.get(subscribeId).getOrElse(null)
+    if (incoming == null) {
+      incoming = new WebRtcEndpoint.Builder(pipeline).build
+      incomingMedia.put(subscribeId, incoming)
+    }
+
+    // create out stream
+    val outKey = (subscribeId, user.id) // host, subscriber
+    var outgoing: WebRtcEndpoint = outgoingMedia.get(outKey).getOrElse(null)
+    if (outgoing == null) {
+      outgoing = new WebRtcEndpoint.Builder(pipeline).build
+      outgoingMedia.put(outKey, outgoing)
+    }
+
+    incoming.connect(outgoing)
+
+    sender !  new SdpAnswerMessage(subscribeId, outgoing.processOffer(sdpOffer))
+  }
 
   def receive = LoggingReceive {
 
     case "print" => println(roomState)
 
     case js: JsValue =>
-      try {
+//      try {
         //users foreach { user => user._1 ! js}
         val messageTuple = (getStringValue(js, "messageType"), getStringValue(js, "data"))
 
@@ -123,6 +143,9 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
               case ("command", "broadcast") =>
                 doUserBroadcast(senderUser, js)
+
+              case ("command", "subscribe") =>
+                doUserSubscribe(senderUser, js)
 
               case ("command", "clear") =>
                   broadcastAll(new ChatClear().toJson, true)
@@ -151,9 +174,10 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
           }
         }
 
-      } catch {
-        case e: Exception => println("Error " + e.getStackTrace().toString)
-      }
+//      } catch {
+//        case e: Exception =>
+//          println("Error " + e.getStackTrace().toString)
+//      }
 
     // ##### USER CONNECTED #####
     case ActorSubscribe(uid, name) =>
