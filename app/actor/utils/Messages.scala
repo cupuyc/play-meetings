@@ -77,6 +77,10 @@ class ChatMessage(var name : String, var message: String) extends ServerMessage 
   var messageType: String = "chatMessage"
 }
 
+class SdpAnswerMessage(var id : String, var sdpAnswer: String) extends ServerMessage {
+  var messageType: String = "sdpAnswerMessage"
+}
+
 class UserCommand(var data: String) extends ServerMessage {
   var messageType: String = "command"
 }

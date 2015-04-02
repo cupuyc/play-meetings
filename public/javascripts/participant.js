@@ -24,8 +24,9 @@ const PARTICIPANT_CLASS = 'participant';
  *                        The tag of the new element will be 'video<name>'
  * @return
  */
-function Participant(name) {
+function Participant(name, sendFunction) {
 	this.name = name;
+    this.sendFunction = sendFunction;
 	var container = document.createElement('div');
 	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
 	container.id = name;
@@ -72,11 +73,15 @@ function Participant(name) {
 
 	this.offerToReceiveVideo = function(offerSdp, wp){
 		console.log('Invoking SDP offer callback function');
-		var msg =  { id : "receiveVideoFrom",
-				sender : name,
-				sdpOffer : offerSdp
-			};
-		sendMessage(msg);
+        this.sendFunction(this.name, offerSdp);
+
+        //console.log('offerSdp ' + JSON.stringify(offerSdp));
+        //var msg =  { id : "receiveVideoFrom",
+			//	sender : name,
+			//	sdpOffer : offerSdp
+			//};
+
+		//sendMessage(msg);
 	}
 
 	Object.defineProperty(this, 'rtcPeer', { writable: true});

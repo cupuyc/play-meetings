@@ -76,8 +76,8 @@
     }
 
     function receiveVideo(sender) {
-        console.log(sender)
-        var participant = new Participant(sender);
+        console.log("receiveVideo " + sender)
+        var participant = new Participant(sender, sendBroadcast);
         participants[sender] = participant;
         var video = participant.getVideoElement();
         participant.rtcPeer = kurentoUtils.WebRtcPeer.startRecvOnly(video,
@@ -118,7 +118,7 @@
             }
         };
         console.log(pid + " registered in room " + room);
-        var participant = new Participant(pid);
+        var participant = new Participant(pid, sendBroadcast);
         participants[pid] = participant;
         var video = participant.getVideoElement();
         participant.rtcPeer = kurentoUtils.WebRtcPeer.startSendOnly(video,
@@ -184,6 +184,10 @@
         socket.send(JSON.stringify(o));
     }
 
+    function sendBroadcast(userId, offerSdp) {
+        send({messageType: "command", data: "broadcast", sdpOffer: offerSdp});
+    }
+
 
     (function () {
 
@@ -224,6 +228,12 @@
             } else if (m.messageType == "status") {
                 $("#localTextArea").html(m.local);
                 $("#allTextArea").html(m.all);
+            } else if (m.messageType == "sdpAnswerMessage") {
+                var sdpAnswer = m.sdpAnswer;
+                var userId = m.id;
+
+                console.log("sdpAnswerMessage received " + userId)
+                participants[userId].rtcPeer.processSdpAnswer(sdpAnswer);
             } else if (m.messageType == "disconnect") {
                 delete players[m.pid];
             }

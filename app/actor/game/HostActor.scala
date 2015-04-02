@@ -4,6 +4,7 @@ import actor.utils._
 import akka.actor._
 import akka.event.LoggingReceive
 import akka.persistence._
+import org.kurento.client.{MediaPipeline, KurentoClient, WebRtcEndpoint}
 import play.api.Logger
 import play.api.libs.json.{Json, JsObject, JsString, JsValue}
 import play.libs.Akka
@@ -15,6 +16,11 @@ import scala.concurrent.duration._
 
 
 class HostActor(val roomName: String = "Default") extends Actor with ActorLogging {
+
+  val kurento: KurentoClient = KurentoClient.create("ws://192.168.1.153:8888/kurento")
+  val pipeline: MediaPipeline = kurento.createMediaPipeline()
+  val incomingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
+  val outgoingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
 
   var users = mutable.HashMap[ActorRef, UserInfo]()
   var pendingUsers = mutable.HashMap[ActorRef, String]()
@@ -59,6 +65,37 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
     broadcastMessage(new ChangeBracketMessage(Prefix.USER, user.id, user.toJson))
   }
 
+  def getStringValue(js: JsValue, prop: String) = {
+    (js \ prop) match {
+      case JsString(value) => value
+      case _ => ""
+    }
+  }
+
+  def doUserBroadcast(user: UserInfo, js: JsValue) = {
+    println(s"Broadcast request from ${user.id}")
+    val sdpOffer = (js \ "sdpOffer").as[String]
+
+    // create in stream
+    var incoming: WebRtcEndpoint = incomingMedia.get(user.id).getOrElse(null)
+    if (incoming == null) {
+      incoming = new WebRtcEndpoint.Builder(pipeline).build
+      incomingMedia.put(user.id, incoming)
+    }
+
+    // create out stream
+    var outgoing: WebRtcEndpoint = outgoingMedia.get(user.id).getOrElse(null)
+    if (outgoing == null) {
+      outgoing = new WebRtcEndpoint.Builder(pipeline).build
+      outgoingMedia.put(user.id, outgoing)
+    }
+
+    outgoing.connect(incoming)
+
+    sender !  new SdpAnswerMessage(user.id, incoming.processOffer(sdpOffer))
+  }
+
+
   def receive = LoggingReceive {
 
     case "print" => println(roomState)
@@ -66,40 +103,41 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
     case js: JsValue =>
       try {
         //users foreach { user => user._1 ! js}
+        val messageTuple = (getStringValue(js, "messageType"), getStringValue(js, "data"))
 
         users.get(sender) match {
           case Some(senderUser) =>
-            (js \ "messageType") match {
+            messageTuple match {
               // user may change his name
-              case JsString("changeName") =>
+              case ("changeName", _) =>
                 val name = (js \ "name").as[String]
                 changeUserName(senderUser, name)
 
               // user change state
-              case JsString("change") =>
+              case ("change", _) =>
                 val key = (js \ "key").as[String]
                 val value = js \ "value"
 
                 roomState.put(key, value)
                 broadcastAll(js)
 
-              case JsString("command") =>
-                (js \ "data") match {
-                  case JsString("clear") =>
-                    broadcastAll(new ChatClear().toJson, true)
-                  // TODO delete
-                  // deleteMessages(0L, true)
-                  case _ =>
-                    broadcastAll(new ChatMessage(senderUser.name, (js \ "data").as[String]).toJson, true)
-                }
+              case ("command", "broadcast") =>
+                doUserBroadcast(senderUser, js)
+
+              case ("command", "clear") =>
+                  broadcastAll(new ChatClear().toJson, true)
+                // TODO delete
+                // deleteMessages(0L, true)
+              case ("command", _) =>
+                  broadcastAll(new ChatMessage(senderUser.name, (js \ "data").as[String]).toJson, true)
 
               case _ => println("ERROR Undefined messageType in " + js.toString())
             }
           case _ =>
-            (js \ "messageType") match {
+            messageTuple match {
               // user send initial info during connect
               // name for now
-              case JsString("join") =>
+              case ("join", _) =>
                 pendingUsers.get(sender) match {
                   case Some(uid) =>
                     val name = (js \ "name").as[String]

@@ -95,6 +95,7 @@ WebRtcPeer.prototype.start = function(server, options) {
 
 	if (!this.pc) {
 		this.pc = new RTCPeerConnection(server, options);
+        console.log('RTCPeerConnection to ' + JSON.stringify(server));
 	}
 
 	var pc = this.pc;
