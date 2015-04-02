@@ -165,7 +165,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
                   case Some(uid) =>
                     val name = (js \ "name").as[String]
                     pendingUsers.remove(sender())
-                    doJoinUser(uid, name)
+                    doUserJoin(uid, name)
                   case _ => println("ERROR:No pending user found")
                 }
 
@@ -189,21 +189,22 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
       self ! ActorLeave(actorRef)
 
     case ActorLeave(actorRef) =>
-      pendingUsers.remove(actorRef)
-      users.remove(actorRef) match {
-        case Some(leaveUser) =>
-          for ((userAct, user) <- users) {
-            userAct ! new ChangeBracketMessage(Prefix.USER, leaveUser.id, null)
-          }
-        case _ => println("Error: leave user wasn't found " + actorRef)
-      }
+      doUserLeave(actorRef)
 
 
     case AdminStatus =>
-      sender ! AdminStatusReply(roomName, users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name), 0)
+      import scala.collection.JavaConverters._
+
+      val childs = pipeline.getChilds().asScala
+      val onlineUsers = users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name)
+      val activeMedias = childs.map(media => media.getName)
+      sender ! AdminStatusReply(
+        roomName,
+        users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name),
+        users.size)
   }
 
-  def doJoinUser(uid: String, name: String): Unit = {
+  def doUserJoin(uid: String, name: String): Unit = {
     // sender is joined user actorRef
     val joinUser = new UserInfo(uid, sender, name);
 
@@ -223,6 +224,27 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
     // #3 send whole room state to connected user
     for ((key, value) <- roomState) {
       sender ! new ChangeMessage(key, value)
+    }
+  }
+
+  def doUserLeave(actorRef: ActorRef): Unit = {
+    pendingUsers.remove(actorRef)
+    users.remove(actorRef) match {
+      case Some(user) =>
+        // send leave message to all
+        for ((userAct, user) <- users) {
+          userAct ! new ChangeBracketMessage(Prefix.USER, user.id, null)
+        }
+
+        // clear kurento objects
+        incomingMedia.get(user.id) match {
+          case Some(incoming) => incoming.release()
+        }
+        for (((hostId, viewerId), outgoing) <- outgoingMedia if hostId == user.id) {
+          outgoing.release()
+        }
+
+      case _ => println("Error: leave user wasn't found " + actorRef)
     }
   }
 }
