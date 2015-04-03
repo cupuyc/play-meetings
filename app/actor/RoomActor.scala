@@ -1,4 +1,4 @@
-package actor.game
+package actor
 
 import actor.utils._
 import akka.actor._
@@ -15,10 +15,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 
-class HostActor(val roomName: String = "Default") extends Actor with ActorLogging {
+class RoomActor(val roomName: String = "Default") extends Actor with ActorLogging {
 
-  val kurento: KurentoClient = KurentoClient.create("ws://192.168.1.153:8881/kurento")
-  val pipeline: MediaPipeline = kurento.createMediaPipeline()
+  lazy val kurento: KurentoClient = KurentoClient.create("ws://localhost:8881/kurento")
+  lazy val pipeline: MediaPipeline = kurento.createMediaPipeline()
 
   // incoming user broadcasts
   val incomingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
@@ -31,20 +31,13 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
   var roomState = mutable.HashMap[String, JsValue]()
 
-  var statusInterval: Option[Cancellable] = None;
-
   override def preStart() = {
     println("HostActor start " + roomName + " " + self)
-    //statusInterval = Some(Akka.system().scheduler.schedule(0 seconds, 0.1 seconds)(logStatus))
   }
 
 
   override def postStop() = {
     Logger.info("HostActor stop " + roomName)
-    statusInterval match {
-      case Some(i) if !i.isCancelled => i.cancel()
-      case _ => ""
-    }
   }
 
   def broadcastStatus() = {
@@ -121,7 +114,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
     case "print" => println(roomState)
 
     case js: JsValue =>
-//      try {
+      try {
         //users foreach { user => user._1 ! js}
         val messageTuple = (getStringValue(js, "messageType"), getStringValue(js, "data"))
 
@@ -174,13 +167,14 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
           }
         }
 
-//      } catch {
-//        case e: Exception =>
-//          println("Error " + e.getStackTrace().toString)
-//      }
+      } catch {
+        case e: Exception =>
+          println("Error " + e.getStackTrace().toString)
+      }
 
     // ##### USER CONNECTED #####
     case ActorSubscribe(uid, name) =>
+      println("User connected " + uid)
       pendingUsers.put(sender, uid)
 
 
@@ -205,6 +199,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
   }
 
   def doUserJoin(uid: String, name: String): Unit = {
+    println("User joined " + uid)
     // sender is joined user actorRef
     val joinUser = new UserInfo(uid, sender, name);
 
@@ -239,6 +234,7 @@ class HostActor(val roomName: String = "Default") extends Actor with ActorLoggin
         // clear kurento objects
         incomingMedia.get(user.id) match {
           case Some(incoming) => incoming.release()
+          case None => println("No incoming media to release " + user.id)
         }
         for (((hostId, viewerId), outgoing) <- outgoingMedia if hostId == user.id) {
           outgoing.release()

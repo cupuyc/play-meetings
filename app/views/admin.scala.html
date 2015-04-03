@@ -7,7 +7,7 @@
             <p>
                 <button type="button" class="btn btn-primary" onclick="location.reload();">Refresh</button>
             </p>
-            <label>Game info</label>
+            <label>Room info</label>
             @list.grouped(3).map { group =>
                 <ul>
                     @group.map { item =>
@@ -18,5 +18,4 @@
         </div>
     </div>
 
-    <!--<script type="text/javascript" src="@routes.Assets.at("../../public/javascripts/game.js")"></script>-->
 }

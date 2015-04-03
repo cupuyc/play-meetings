@@ -85,14 +85,14 @@
     }
 
     function sendChatMessage() {
-        send({messageType: 'change', key: "chat", value: $("#commandInput").val()});
+        send({messageType: "change", key: "chat." + new Date().getTime(), value: pname + ": " + $("#commandInput").val()});
         $("#commandInput").val("");
     }
 
     $('#pname').text(pname).click(function (e) {
         e.preventDefault();
         pname = queryPname();
-        send({messageType: 'changeName', name: pname});
+        send({messageType: "changeName", name: pname});
         $('#pname').text(pname);
     });
 
@@ -126,9 +126,6 @@
             constraints);
 
     });
-    $('#commandTileButton').on('click', function (e) {
-        sendCommand("tile");
-    });
 
     $('#commandForm').submit(function (event) {
         // prevent default browser behaviour
@@ -146,7 +143,7 @@
 
     function tryConnectAgain() {
         reconnection = true;
-        setError("WebSocket connection is down. reconnecting...");
+        setError("Reconnecting...");
         setTimeout(function () {
             reconnectInterval *= (1.5 + 0.2 * Math.random());
             connect();
@@ -221,6 +218,11 @@
                             }
                         }
                     }
+                } else if (m.key.indexOf("chat.") == 0) {
+                    var chatArea = $("#chatArea");
+                    chatArea.html(chatArea.html() + "<p>" + m.value + "</p>")
+                    chatArea.get(0).scrollTop = chatArea.get(0).scrollHeight;
+                    console.log("Append child " + m.value)
                 }
             } else if (m.messageType == "chatClear") {
                 $("#chatArea").html("");

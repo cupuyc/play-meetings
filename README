@@ -1,15 +1,6 @@
-This is your new Play application
-=================================
+This Play application with Scala| Akka | WebSockets
+===================================================
 
-This file will be packaged with your application, when using `activator dist`.
-
-
-To create idea project with sources run:
-1. "activator" to enter console
-2. "idea with-sources=yes"
-
-Helpful sbt commands:
- - reload
- - clean
- - test
- - idea with-sources=yes
+Features:
+ - Users presence
+ - Chat

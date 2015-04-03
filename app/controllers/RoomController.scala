@@ -3,8 +3,7 @@ package controllers
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-import actor.game.HostActor
-import actor.game.UserActor
+import actor.{RoomActor, UserActor}
 import actor.utils.{AdminStatus, AdminStatusReply}
 import akka.actor.{ActorRef, Actor, Props}
 import play.libs.Akka
@@ -20,9 +19,9 @@ import play.api.mvc.WebSocket
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object GameController extends Controller {
+object RoomController extends Controller {
 
-  lazy val defaultHostActorRef = Akka.system().actorOf(Props(new HostActor("Lobby")), name = "GameHost")
+  lazy val defaultRoomActorRef = Akka.system().actorOf(Props(new RoomActor("Default")), name = "DefaultRoom")
 
   val hostActorRefs = new mutable.HashMap[String, ActorRef]()
 
@@ -35,7 +34,7 @@ object GameController extends Controller {
       case _ => counter.getAndIncrement().toString
     }
     Logger.debug("Joined uid " + uid.toString)
-    Ok(views.html.game(uid)).withSession(request.session + (UID -> uid))
+    Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
   }
 
   def logout = Action { implicit request =>
@@ -52,7 +51,7 @@ object GameController extends Controller {
             context.stop(self)
         }
       }))
-      defaultHostActorRef.tell(msg = AdminStatus, sender = replyTo)
+      defaultRoomActorRef.tell(msg = AdminStatus, sender = replyTo)
       //transforming the actor response to Play result
       p.future.map(
         response => {
@@ -70,12 +69,7 @@ object GameController extends Controller {
 
   def stream(room: String = "default") = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
     val uid = UUID.randomUUID().toString().substring(0, 4)
-    Future.successful(Right(UserActor.props(uid, defaultHostActorRef)))
-//    Future.successful(request.session.get(UID) match {
-//      case None => Left(Forbidden)
-//      case Some(uid) =>
-//        Right(UserActor.props(uid, defaultHostActorRef))
-//    })
+    Future.successful(Right(UserActor.props(uid, defaultRoomActorRef)))
   }
 }
 

@@ -16,8 +16,6 @@ object Prefix {
 case class ActorMessage(uuid: String, s: String)
 case class ActorSubscribe(uid: String, name: String = "")
 case class ActorLeave(actorRef: ActorRef)
-case class ActorReset()
-case class ActorJoinGame(gameRef: Option[ActorRef], name: String)
 
 case class AdminStatus()
 case class AdminStatusReply(name: String, users: Iterable[String], chatSize: Int)
@@ -47,13 +45,6 @@ abstract class ServerMessage {
 
 class ConnectedMessage(var pid: String, serverTime: Int) extends ServerMessage {
   var messageType: String = "youAre"
-}
-
-class PainterMessage(var pid : String,
-  var name: String,
-  var size: Number,
-  var color: String) extends ServerMessage {
-  var messageType: String = "painter"
 }
 
 class ChangeBracketMessage(val bracket: String, val id : String, var value: JsValue) extends ServerMessage {

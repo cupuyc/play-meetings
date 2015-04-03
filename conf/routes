@@ -5,13 +5,13 @@
 # Home page
 #GET     /                           controllers.Application.index
 
-GET         /                    controllers.GameController.index()
+GET         /                    controllers.RoomController.index()
 
-POST        /logout              controllers.GameController.logout()
+POST        /logout              controllers.RoomController.logout()
 
-GET         /admin               controllers.GameController.admin()
+GET         /admin               controllers.RoomController.admin()
 
-GET         /stream/:room        controllers.GameController.stream(room: String)
+GET         /stream/:room        controllers.RoomController.stream(room: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file        controllers.Assets.at(path="/public", file)

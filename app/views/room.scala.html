@@ -17,28 +17,27 @@
         <div id="viewport">
             <label for="localTextArea">Your info</label>
             <p id="localTextArea">Local info</p>
-            <form method="POST" action="@routes.GameController.logout()" target="_self">
-                <input type="submit" value="Logout" />
-            </form>
 
             <label for="allTextArea">All info</label>
             <p id="allTextArea">All info</p>
-            <p>&nbsp;</p>
 
             <label for="chatArea">Chat</label>
             <div id="chatArea">
             </div>
 
-            <label class="control-label" for="console">Console</label>
-            <div id="console" class="pre-scrollable" style="height: 150px"></div>
+            @*<label class="control-label" for="console">Console</label>*@
+            @*<div id="console" class="pre-scrollable" style="height: 150px"></div>*@
         </div>
         <div>
             <form id="commandForm" role="form" class="form-inline">
                 <input type="text" class="form-control" id="commandInput" placeholder="Enter command">
                 <button type="button" class="btn btn-primary" id="commandSendButton">Send</button>
-                <button type="button" class="btn btn-success" id="commandPlayButton">Play</button>
-                <button type="button" class="btn btn-success" id="commandTileButton">Tile</button>
+                <button type="button" class="btn btn-success" id="commandPlayButton">Broadcast</button>
                 <button type="button" class="btn btn-danger" id="commandClearButton">Clear</button>
+
+                @*<form method="POST" action="@routes.RoomController.logout()" target="_self">*@
+                    @*<input type="submit" class="btn btn-danger" value="Logout" />*@
+                @*</form>*@
             </form>
         </div>
 
@@ -63,9 +62,8 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/kurento-utils.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
-    @*<script type="text/javascript" src="@routes.Assets.at("javascripts/conferenceroom.js")"></script>*@
 
-    <script type="text/javascript" src="@routes.Assets.at("/javascripts/game.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("/javascripts/room.js")"></script>
 
 
 }

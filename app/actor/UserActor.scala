@@ -1,34 +1,29 @@
 package actor
 
-import actor.utils.{ServerMessage, ActorSubscribe}
-import akka.actor.Actor
-import akka.actor.ActorLogging
+import actor.utils.{ActorSubscribe, ServerMessage}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
 import play.api.libs.json._
-import akka.actor.ActorRef
-import akka.actor.Props
 
-class UserActor(var uid: String, boardRef: ActorRef, out: ActorRef) extends Actor with ActorLogging {
-
-  //val outQueue = ListBuffer[JsValue]()
+class UserActor(var uid: String, roomRef: ActorRef, out: ActorRef) extends Actor with ActorLogging {
 
   override def preStart() = {
-    boardRef ! ActorSubscribe(uid)
+    roomRef ! ActorSubscribe(uid)
   }
 
   def receive = LoggingReceive {
     // resend from board to all
     case msg: ServerMessage =>
       out ! msg.toJson
-    case js: JsValue if sender == boardRef =>
+    case js: JsValue if sender == roomRef =>
       out ! js
     case js: JsValue =>
-      boardRef ! js
+      roomRef ! js
     case other =>
       log.error("UserActor unhandled: " + other)
   }
 }
 
 object UserActor {
-  def props(uid: String, board: ActorRef)(out: ActorRef) = Props(new UserActor(uid, board, out))
+  def props(uid: String, room: ActorRef)(out: ActorRef) = Props(new UserActor(uid, room, out))
 }
