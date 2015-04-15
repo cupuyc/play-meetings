@@ -33,28 +33,45 @@ function Participant(name, sendFunction, isLocalUser) {
 	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
 	container.id = name;
 	var span = document.createElement('span');
-	var video = document.createElement('video');
+    var video = document.createElement('video');
+    video.setAttribute("style","width:200px");
+
+    var stream;
 	var rtcPeer;
 
-	container.appendChild(video);
-	container.appendChild(span);
-	container.onclick = switchContainerClass;
+    container.appendChild(video);
+    container.appendChild(span);
+    container.onclick = switchContainerClass;
+
 	document.getElementById('participants').appendChild(container);
 
 	span.appendChild(document.createTextNode(name));
+    video.id = 'video-' + name;
+    video.autoplay = true;
 
-	video.id = 'video-' + name;
-	video.autoplay = true;
 	video.controls = false;
 
+    this.start = function(handler) {
+        this.handler = handler;
+        if (this.isLocalUser) {
+            getUserMedia({
+                    audio: true,
+                    video: true
+                }, this.gotLocalStream.bind(this),
+                function(e) {
+                    alert('getUserMedia() error: ' + e.name);
+                });
+            attachMediaStream(video, stream);
+        }
+    }
 
-	this.getElement = function() {
-		return container;
-	}
-
-	this.getVideoElement = function() {
-		return video;
-	}
+    this.gotLocalStream = function(stream) {
+        trace('Received local stream');
+        // Call the polyfill wrapper to attach the media stream to this element.
+        attachMediaStream(video, stream);
+        this.stream = stream;
+        this.handler();
+    }
 
 	function switchContainerClass() {
 		if (container.className === PARTICIPANT_CLASS) {
@@ -72,6 +89,53 @@ function Participant(name, sendFunction, isLocalUser) {
 	function isPresentMainParticipant() {
 		return ((document.getElementsByClassName(PARTICIPANT_MAIN_CLASS)).length != 0);
 	}
+
+    this.getOfferForViewer = function() {
+        var servers = null;
+        pc1 = new RTCPeerConnection(servers);
+        trace('Created local peer connection object pc1');
+        pc1.onicecandidate = function(e) {
+            onIceCandidate(pc1, e);
+        };
+        pc1.oniceconnectionstatechange = function(e) {
+            onIceStateChange(pc1, e);
+        };
+        pc1.addStream(stream);
+        trace('Added local stream to pc1');
+
+        trace('pc1 createOffer start');
+        pc1.createOffer(onCreateOfferSuccess, onCreateSessionDescriptionError);
+    }
+
+
+    function onIceCandidate(pc, event) {
+        if (event.candidate) {
+            getOtherPc(pc).addIceCandidate(new RTCIceCandidate(event.candidate),
+                function() {
+                    onAddIceCandidateSuccess(pc);
+                },
+                function(err) {
+                    onAddIceCandidateError(pc, err);
+                }
+            );
+            trace(getName(pc) + ' ICE candidate: \n' + event.candidate.candidate);
+        }
+    }
+
+    function onAddIceCandidateSuccess(pc) {
+        trace(getName(pc) + ' addIceCandidate success');
+    }
+
+    function onAddIceCandidateError(pc, error) {
+        trace(getName(pc) + ' failed to add ICE Candidate: ' + error.toString());
+    }
+
+    function onIceStateChange(pc, event) {
+        if (pc) {
+            trace(getName(pc) + ' ICE state: ' + pc.iceConnectionState);
+            console.log('ICE state change event: ', event);
+        }
+    }
 
 	this.offerToReceiveVideo = function(offerSdp, wp){
 		console.log('Invoking SDP offer callback function');

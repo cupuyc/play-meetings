@@ -30,6 +30,7 @@
     var videoOutput;
     var participants = {};
     var name;
+    var broadcasting = false;
 
 
     var insideIframe = (window.parent != window);
@@ -43,11 +44,6 @@
     var pname;
 
     var onSocketMessage;
-
-    // every player positions
-    var players = {};
-
-    var viewport = document.getElementById('viewport');
 
     // Init pname
     function queryPname() {
@@ -103,29 +99,27 @@
     $('#commandClearButton').on('click', function (e) {
         sendCommand("clear");
     });
+
+    // start or stop local broadcast
     $('#commandPlayButton').on('click', function (e) {
-        videoInput = document.getElementById('videoInput');
-        videoOutput = document.getElementById('videoOutput');
-
-        var constraints = {
-            audio : true,
-            video : {
-                mandatory : {
-                    maxWidth : 200,
-                    maxFrameRate : 15,
-                    minFrameRate : 15
-                }
-            }
-        };
-        console.log(pid + " registered in room " + room);
-        var participant = new Participant(pid, sendBroadcast, true);
-        participants[pid] = participant;
-        var video = participant.getVideoElement();
-        participant.rtcPeer = kurentoUtils.WebRtcPeer.startSendOnly(video,
-            participant.offerToReceiveVideo.bind(participant), null,
-            constraints);
-
+        if (broadcasting) {
+            broadcasting = false;
+            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+            send({messageType: "change", key: "broadcast." + pid, value: null});
+        } else {
+            console.log(pid + " registered in room " + room);
+            var participant = new Participant(pid, sendBroadcast, true);
+            participants[pid] = participant;
+            participant.start(onBroadcastReady);
+            $('#commandPlayButton').text("Starting...");
+        }
     });
+
+    function onBroadcastReady() {
+        broadcasting = true;
+        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+        send({messageType: "change", key: "broadcast." + pid, value: true});
+    }
 
     $('#commandForm').submit(function (event) {
         // prevent default browser behaviour
@@ -240,8 +234,6 @@
 
                 console.log("sdpAnswerMessage received " + userId)
                 participants[userId].rtcPeer.processSdpAnswer(sdpAnswer);
-            } else if (m.messageType == "disconnect") {
-                delete players[m.pid];
             }
         }
     }());
