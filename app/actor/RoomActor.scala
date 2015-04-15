@@ -17,14 +17,6 @@ import scala.concurrent.duration._
 
 class RoomActor(val roomName: String = "Default") extends Actor with ActorLogging {
 
-  lazy val kurento: KurentoClient = KurentoClient.create("ws://localhost:8881/kurento")
-  lazy val pipeline: MediaPipeline = kurento.createMediaPipeline()
-
-  // incoming user broadcasts
-  val incomingMedia: mutable.HashMap[String, WebRtcEndpoint] = new mutable.HashMap[String, WebRtcEndpoint]
-
-  // outgoing user broadcasts per each user
-  val outgoingMedia: mutable.HashMap[(String, String), WebRtcEndpoint] = new mutable.HashMap[(String, String), WebRtcEndpoint]
 
   var users = mutable.HashMap[ActorRef, UserInfo]()
   var pendingUsers = mutable.HashMap[ActorRef, String]()
@@ -74,15 +66,10 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
     val sdpOffer = (js \ "sdpOffer").as[String]
 
     // create in stream
-    var incoming: WebRtcEndpoint = incomingMedia.get(user.id).getOrElse(null)
-    if (incoming == null) {
-      incoming = new WebRtcEndpoint.Builder(pipeline).build
-      incomingMedia.put(user.id, incoming)
-    }
+    val sdpAnswer = KurentoService.addBroadcast(user.id, sdpOffer)
 
-    sender !  new SdpAnswerMessage(user.id, incoming.processOffer(sdpOffer))
+    sender !  new SdpAnswerMessage(user.id, sdpAnswer)
   }
-
 
   def doUserSubscribe(user: UserInfo, js: JsValue) = {
     val subscribeId = (js \ "subscribeId").as[String]
@@ -90,23 +77,10 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
     val sdpOffer = (js \ "sdpOffer").as[String]
 
     // create in stream
-    var incoming: WebRtcEndpoint = incomingMedia.get(subscribeId).getOrElse(null)
-    if (incoming == null) {
-      incoming = new WebRtcEndpoint.Builder(pipeline).build
-      incomingMedia.put(subscribeId, incoming)
-    }
-
     // create out stream
-    val outKey = (subscribeId, user.id) // host, subscriber
-    var outgoing: WebRtcEndpoint = outgoingMedia.get(outKey).getOrElse(null)
-    if (outgoing == null) {
-      outgoing = new WebRtcEndpoint.Builder(pipeline).build
-      outgoingMedia.put(outKey, outgoing)
-    }
+    val sdpAnswer = KurentoService.addViewer(subscribeId, user.id, sdpOffer)
 
-    incoming.connect(outgoing)
-
-    sender !  new SdpAnswerMessage(subscribeId, outgoing.processOffer(sdpOffer))
+    sender !  new SdpAnswerMessage(subscribeId, sdpAnswer)
   }
 
   def receive = LoggingReceive {
@@ -187,11 +161,8 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
 
     case AdminStatus =>
-      import scala.collection.JavaConverters._
-
-      val childs = pipeline.getChilds().asScala
       val onlineUsers = users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name)
-      val activeMedias = childs.map(media => media.getName)
+
       sender ! AdminStatusReply(
         roomName,
         users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name),
@@ -231,14 +202,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
           userAct ! new ChangeBracketMessage(Prefix.USER, user.id, null)
         }
 
-        // clear kurento objects
-        incomingMedia.get(user.id) match {
-          case Some(incoming) => incoming.release()
-          case None => println("No incoming media to release " + user.id)
-        }
-        for (((hostId, viewerId), outgoing) <- outgoingMedia if hostId == user.id) {
-          outgoing.release()
-        }
+        KurentoService.release(user.id)
 
       case _ => println("Error: leave user wasn't found " + actorRef)
     }

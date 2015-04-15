@@ -2,16 +2,14 @@ package actor.utils
 
 import java.math.BigDecimal
 
-import actor.utils.ServerMessage
 import akka.actor.ActorRef
 import play.api.libs.json._
-
-import scala.collection.immutable.HashMap
 
 object Prefix {
   var USER = "user"
   var CHAT = "chat"
 }
+
 
 case class ActorMessage(uuid: String, s: String)
 case class ActorSubscribe(uid: String, name: String = "")

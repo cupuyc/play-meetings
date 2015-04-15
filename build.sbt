@@ -1,10 +1,12 @@
-name := """playpaint"""
+name := """playstudy"""
 
-version := "1.1"
+version := "1.2"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.1"
+
+scalacOptions ++= Seq("-unchecked", "-feature")
 
 resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
