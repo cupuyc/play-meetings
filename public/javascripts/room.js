@@ -217,7 +217,7 @@
                         if (!participant) {
                             participants[userId] = participant;
                             if (pid != userId) {    // don't subscribe own video
-                                receiveVideo(userId)
+                                //receiveVideo(userId)
                             }
                         }
                     }
