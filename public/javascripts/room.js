@@ -102,10 +102,18 @@
 
     // start or stop local broadcast
     $('#commandPlayButton').on('click', function (e) {
+        var participant = participants[pid];
         if (broadcasting) {
             broadcasting = false;
             $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+            // remove local broadcast object from state
             send({messageType: "change", key: "broadcast." + pid, value: null});
+
+            if (participant) {
+                delete participants[pid];
+                participant.dispose();
+                console.log("Removing local broadcast")
+            }
         } else {
             console.log(pid + " registered in room " + room);
             var participant = new Participant(pid, sendBroadcast, true);
@@ -118,6 +126,7 @@
     function onBroadcastReady() {
         broadcasting = true;
         $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+        // add local broadcast object to state
         send({messageType: "change", key: "broadcast." + pid, value: true});
     }
 

@@ -10,7 +10,6 @@ class UserActor(var uid: String, roomRef: ActorRef, out: ActorRef) extends Actor
   override def preStart() = {
     roomRef ! ActorSubscribe(uid)
   }
-
   def receive = LoggingReceive {
     // resend from board to all
     case msg: ServerMessage =>

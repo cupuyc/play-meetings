@@ -154,7 +154,15 @@ function Participant(name, sendFunction, isLocalUser) {
 
 	this.dispose = function() {
 		console.log('Disposing participant ' + this.name);
-		this.rtcPeer.dispose();
 		container.parentNode.removeChild(container);
-	};
+
+        if (this.isLocalUser && this.stream) {
+            this.stream.stop();
+        }
+        try {
+            this.rtcPeer.dispose(); // execution may stop
+        } catch (e) {
+            console.error("Wired thing in rtc peer dispose");
+        }
+    };
 }
