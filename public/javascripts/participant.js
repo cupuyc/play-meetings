@@ -1,18 +1,3 @@
-/*
-* (C) Copyright 2014 Kurento (http://kurento.org/)
-*
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the GNU Lesser General Public License
-* (LGPL) version 2.1 which accompanies this distribution, and is available at
-* http://www.gnu.org/licenses/lgpl-2.1.html
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* Lesser General Public License for more details.
-*
-*/
-
 const PARTICIPANT_MAIN_CLASS = 'participant main';
 const PARTICIPANT_CLASS = 'participant';
 
@@ -25,9 +10,13 @@ const PARTICIPANT_CLASS = 'participant';
  * @return
  */
 function Participant(name, sendFunction, isLocalUser) {
+    var userId = name;
 	this.name = name;
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
+
+    var servers = null;
+    var out = {};
 
 	var container = document.createElement('div');
 	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
@@ -53,6 +42,7 @@ function Participant(name, sendFunction, isLocalUser) {
 
     this.start = function(handler) {
         this.handler = handler;
+        console.log("Participant:start " + userId + " isLocal:" + this.isLocalUser);
         if (this.isLocalUser) {
             getUserMedia({
                     audio: true,
@@ -61,7 +51,8 @@ function Participant(name, sendFunction, isLocalUser) {
                 function(e) {
                     alert('getUserMedia() error: ' + e.name);
                 });
-            attachMediaStream(video, stream);
+        } else {
+            this.sendFunction(userId, {method:"requestCreateOffer", data:null, broadcastId:userId});
         }
     }
 
@@ -70,6 +61,14 @@ function Participant(name, sendFunction, isLocalUser) {
         // Call the polyfill wrapper to attach the media stream to this element.
         attachMediaStream(video, stream);
         this.stream = stream;
+        var videoTracks = stream.getVideoTracks();
+        var audioTracks = stream.getAudioTracks();
+        if (videoTracks.length > 0) {
+            trace('Using video device: ' + videoTracks[0].label);
+        }
+        if (audioTracks.length > 0) {
+            trace('Using audio device: ' + audioTracks[0].label);
+        }
         this.handler();
     }
 
@@ -160,9 +159,75 @@ function Participant(name, sendFunction, isLocalUser) {
             this.stream.stop();
         }
         try {
-            this.rtcPeer.dispose(); // execution may stop
+            rtcPeer.dispose(); // execution may stop
         } catch (e) {
             console.error("Wired thing in rtc peer dispose");
         }
     };
+
+    this.requestCreateOffer = function(remoteUserId, value) {
+        var pc = new RTCPeerConnection(servers);
+        out[remoteUserId] = pc;
+        pc.addStream(this.stream);
+        pc.createOffer(
+            function(desc) {
+                trace('Created offer\n' + 'desc.sdp');
+                pc.setLocalDescription(desc, function() {});
+                sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
+                console.log("createOffer success");
+            },
+            onCreateSessionDescriptionError
+        );
+        console.log("requestCreateOffer");
+    }
+
+    this.respondCreateOffer = function(remoteUserId, value) {
+        var desc = fixDesc(value.desc);
+
+        var sdpConstraints = {
+            'mandatory': {
+                'OfferToReceiveAudio': true,
+                'OfferToReceiveVideo': true
+            }
+        };
+
+        rtcPeer = new RTCPeerConnection(servers);
+        rtcPeer.onaddstream = gotRemoteStream;
+        rtcPeer.setRemoteDescription(desc, function() {});
+        rtcPeer.createAnswer(
+            function onCreateAnswerSuccess(desc) {
+                trace('Created answer:\n' + 'desc.sdp');
+                rtcPeer.setLocalDescription(desc, function() {});
+                sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
+            },
+            onCreateSessionDescriptionError,
+            sdpConstraints
+        );
+    }
+
+    this.respondAnswer = function(remoteUserId, value) {
+        var desc = fixDesc(value.desc);
+        var pc = out[remoteUserId];
+
+        pc.setRemoteDescription(desc, function() {});
+        console.log("respondAnswer")
+    }
+
+    // keep correct object type after serialization
+    function fixDesc(value) {
+        var result = new RTCSessionDescription();
+        result.sdp = value.sdp;
+        result.type = value.type;
+        return result;
+    }
+
+    function gotRemoteStream(e) {
+        // Call the polyfill wrapper to attach the media stream to this element.
+        attachMediaStream(video, e.stream);
+        trace('rtcPeer received remote stream');
+    }
+
+    function onCreateSessionDescriptionError(error) {
+        trace('Failed to create session description: ' + error.toString());
+    }
 }

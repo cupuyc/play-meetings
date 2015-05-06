@@ -8,6 +8,7 @@ import play.api.libs.json._
 object Prefix {
   var USER = "user"
   var CHAT = "chat"
+  var BROADCAST = "broadcast"
 }
 
 

@@ -71,17 +71,29 @@
         }
     }
 
-    function receiveVideo(sender) {
-        console.log("receiveVideo " + sender)
-        var participant = new Participant(sender, sendBroadcast, false);
-        participants[sender] = participant;
-        var video = participant.getVideoElement();
-        participant.rtcPeer = kurentoUtils.WebRtcPeer.startRecvOnly(video,
-            participant.offerToReceiveVideo.bind(participant));
+    // send modify state message
+    function sendChangeMessage(key, value) {
+        send({messageType: "change", key: key, value: value});
+    }
+
+    // send message to specific user
+    function sendToMessage(toUserId, value) {
+        send({messageType: "sendTo", toUserId: toUserId, fromUserId: pid, value: value});
+    }
+
+    function receiveVideo(remoteUserId) {
+        console.log("receiveVideo remoteUserId:" + remoteUserId)
+        var participant = new Participant(remoteUserId, sendToMessage, false);
+        participants[remoteUserId] = participant;
+        participant.start();
+
+        //var video = participant.getVideoElement();
+        //participant.rtcPeer = kurentoUtils.WebRtcPeer.startRecvOnly(video,
+        //    participant.offerToReceiveVideo.bind(participant));
     }
 
     function sendChatMessage() {
-        send({messageType: "change", key: "chat." + new Date().getTime(), value: pname + ": " + $("#commandInput").val()});
+        sendChangeMessage("chat." + new Date().getTime(), pname + ": " + $("#commandInput").val());
         $("#commandInput").val("");
     }
 
@@ -105,9 +117,9 @@
         var participant = participants[pid];
         if (broadcasting) {
             broadcasting = false;
-            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
             // remove local broadcast object from state
-            send({messageType: "change", key: "broadcast." + pid, value: null});
+            sendChangeMessage("broadcast." + pid, null);
 
             if (participant) {
                 delete participants[pid];
@@ -116,18 +128,21 @@
             }
         } else {
             console.log(pid + " registered in room " + room);
-            var participant = new Participant(pid, sendBroadcast, true);
+            if (participant) {
+                participant.dispose();
+            }
+            participant = new Participant(pid, sendToMessage, true);
             participants[pid] = participant;
             participant.start(onBroadcastReady);
-            $('#commandPlayButton').text("Starting...");
+            //$('#commandPlayButton').text("Starting...");
         }
     });
 
     function onBroadcastReady() {
         broadcasting = true;
-        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcasting");
+        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
         // add local broadcast object to state
-        send({messageType: "change", key: "broadcast." + pid, value: true});
+        sendChangeMessage("broadcast." + pid, true);
     }
 
     $('#commandForm').submit(function (event) {
@@ -192,6 +207,25 @@
         }
     }
 
+    function doChangeBroadcast(remoteUserId, value) {
+        if (remoteUserId != pid) {
+            var existingBroadcast = participants[remoteUserId];
+            if (existingBroadcast && !value) {
+                existingBroadcast.dispose();
+                delete participants[remoteUserId];
+            } else if (!existingBroadcast && value) {
+                receiveVideo(remoteUserId);
+            }
+        }
+    }
+
+    function doSendTo(fromUserId, value) {
+        var participant = participants[value.broadcastId];
+        if (participant) {
+            participant[value.method](fromUserId, value);
+        }
+    }
+
 
     (function () {
 
@@ -201,6 +235,7 @@
             if (m.messageType == "youAre") {
                 pid = m.pid;
                 console.log("Set pid " + pid)
+                $("#localTextArea").html("Your id is " + pid);
                 //$("#pid").html("Id: " + pid);
             } else if (m.messageType == "change") {
                 if (m.bracket == "user") {
@@ -221,6 +256,9 @@
                             }
                         }
                     }
+                } else if (m.key.indexOf("broadcast.") == 0) {
+                    var broadcastUserId = m.key.split(".")[1];
+                    doChangeBroadcast(broadcastUserId, m.value);
                 } else if (m.key.indexOf("chat.") == 0) {
                     var chatArea = $("#chatArea");
                     chatArea.html(chatArea.html() + "<p>" + m.value + "</p>")
@@ -229,6 +267,8 @@
                 }
             } else if (m.messageType == "chatClear") {
                 $("#chatArea").html("");
+            } else if (m.messageType == "sendTo") {
+                doSendTo(m.fromUserId, m.value);
             } else if (m.messageType == "chatMessage") {
                 var chatArea = $("#chatArea");
                 chatArea.html(chatArea.html() + "<p><strong>" + m.name + ": </strong>" + m.message + "</p>")

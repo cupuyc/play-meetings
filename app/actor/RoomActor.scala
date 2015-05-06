@@ -6,7 +6,7 @@ import akka.event.LoggingReceive
 import akka.persistence._
 import org.kurento.client.{MediaPipeline, KurentoClient, WebRtcEndpoint}
 import play.api.Logger
-import play.api.libs.json.{Json, JsObject, JsString, JsValue}
+import play.api.libs.json._
 import play.libs.Akka
 
 import scala.collection.immutable
@@ -83,6 +83,15 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
     sender !  new SdpAnswerMessage(subscribeId, sdpAnswer)
   }
 
+  def getUserActor(userId: String): Option[ActorRef] = {
+    for ((userAct, user) <- users) {
+      if (user.id == userId) {
+        return Some(userAct)
+      }
+    }
+    return None
+  }
+
   def receive = LoggingReceive {
 
     case "print" => println(roomState)
@@ -104,9 +113,19 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
               case ("change", _) =>
                 val key = (js \ "key").as[String]
                 val value = js \ "value"
-
-                roomState.put(key, value)
+                if (value == JsNull) {
+                  roomState.remove(key)
+                } else {
+                  roomState.put(key, value)
+                }
                 broadcastAll(js)
+
+              case ("sendTo", _) =>
+                val toUserId = (js \ "toUserId").as[String]
+                getUserActor(toUserId) match {
+                  case Some(actorRef) => actorRef ! js
+                  case None => println("ERROR Cant find send to user " + js.toString())
+                }
 
               case ("command", "broadcast") =>
                 doUserBroadcast(senderUser, js)
@@ -196,13 +215,17 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
   def doUserLeave(actorRef: ActorRef): Unit = {
     pendingUsers.remove(actorRef)
     users.remove(actorRef) match {
-      case Some(user) =>
+      case Some(removeUser) =>
         // send leave message to all
+        val hasBroadcast = roomState.remove(Prefix.BROADCAST + "." + removeUser.id).isDefined
         for ((userAct, user) <- users) {
-          userAct ! new ChangeBracketMessage(Prefix.USER, user.id, null)
+          if (hasBroadcast) {
+            userAct ! new ChangeBracketMessage(Prefix.BROADCAST, removeUser.id, null)
+          }
+          userAct ! new ChangeBracketMessage(Prefix.USER, removeUser.id, null)
         }
 
-        KurentoService.release(user.id)
+        KurentoService.release(removeUser.id)
 
       case _ => println("Error: leave user wasn't found " + actorRef)
     }
