@@ -81,6 +81,8 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
         users.get(sender) match {
           case Some(senderUser) =>
             messageTuple match {
+              case ("ping", _) =>
+
               // user may change his name
               case ("changeName", _) =>
                 val name = (js \ "name").as[String]
@@ -125,6 +127,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
                     doUserJoin(uid, name)
                   case _ => println("ERROR:No pending user found")
                 }
+              case ("ping", _) =>
 
               case _ =>
                 println("ERROR Message from none")

@@ -61,6 +61,13 @@
     if (!pname) {
         pname = "User " + Math.floor(100 * Math.random());
     }
+    setInterval(function() {
+        if (connected) {
+            send({messageType: "ping"});
+        }
+    }, 5000);
+
+
 
     function sendCommand(action) {
         var commandData = $("#commandInput").val();
@@ -193,14 +200,6 @@
     function send(o) {
         if (!connected) return;
         socket.send(JSON.stringify(o));
-    }
-
-    function sendBroadcast(userId, offerSdp) {
-        if (userId == pid) {
-            send({messageType: "command", data: "broadcast", sdpOffer: offerSdp});
-        } else {
-            send({messageType: "command", data: "subscribe", sdpOffer: offerSdp, subscribeId: userId});
-        }
     }
 
     function doChangeBroadcast(remoteUserId, value) {
