@@ -76,6 +76,8 @@ function Participant(name, sendFunction, isLocalUser) {
                     alert('getUserMedia() error: ' + e.name);
                 });
         } else {
+            rtcPeer = new RTCPeerConnection(servers);
+            rtcPeer.onaddstream = gotRemoteStream;
             this.sendFunction(userId, {method:"requestCreateOffer", data:null, broadcastId:userId});
         }
     }
@@ -157,7 +159,6 @@ function Participant(name, sendFunction, isLocalUser) {
 
     this.respondCreateOffer = function(remoteUserId, value) {
         var desc = fixDesc(value.desc);
-
         var sdpConstraints = {
             'mandatory': {
                 'OfferToReceiveAudio': true,
@@ -165,8 +166,6 @@ function Participant(name, sendFunction, isLocalUser) {
             }
         };
 
-        rtcPeer = new RTCPeerConnection(servers);
-        rtcPeer.onaddstream = gotRemoteStream;
         rtcPeer.setRemoteDescription(desc, function() {
             console.log('setRemoteDescription success');
             rtcPeer.createAnswer(
