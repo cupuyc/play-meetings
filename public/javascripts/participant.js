@@ -1,6 +1,7 @@
 const PARTICIPANT_MAIN_CLASS = 'participant main';
 const PARTICIPANT_CLASS = 'participant';
 
+
 /**
  * Creates a video element for a new participant
  *
@@ -15,7 +16,6 @@ function Participant(name, sendFunction, isLocalUser) {
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
 
-    var servers = null;
     var out = {};
 
 	var container = document.createElement('div');
@@ -39,6 +39,33 @@ function Participant(name, sendFunction, isLocalUser) {
     video.autoplay = true;
 
 	video.controls = false;
+
+
+
+    // initialise a configuration for one stun server
+    var qcOpts = {
+        iceServers: [
+            {
+                'url': 'stun:stun.l.google.com:19302'
+            }
+            //"stun.l.google.com:19302",
+            //"stun1.l.google.com:19302",
+            //"stun2.l.google.com:19302",
+            //"stun3.l.google.com:19302",
+            //"stun4.l.google.com:19302",
+            //"stun.ekiga.net",
+            //"stun.ideasip.com",
+            //"stun.rixtelecom.se",
+            //"stun.schlund.de",
+            //"stun.stunprotocol.org:3478",
+            //"stun.voiparound.com",
+            //"stun.voipbuster.com",
+            //"stun.voipstunt.com",
+            //"stun.voxgratia.org",
+            //"stun.services.mozilla.com"
+        ]
+    };
+
 
     this.start = function(handler) {
         this.handler = handler;
@@ -89,66 +116,6 @@ function Participant(name, sendFunction, isLocalUser) {
 		return ((document.getElementsByClassName(PARTICIPANT_MAIN_CLASS)).length != 0);
 	}
 
-    this.getOfferForViewer = function() {
-        var servers = null;
-        pc1 = new RTCPeerConnection(servers);
-        trace('Created local peer connection object pc1');
-        pc1.onicecandidate = function(e) {
-            onIceCandidate(pc1, e);
-        };
-        pc1.oniceconnectionstatechange = function(e) {
-            onIceStateChange(pc1, e);
-        };
-        pc1.addStream(stream);
-        trace('Added local stream to pc1');
-
-        trace('pc1 createOffer start');
-        pc1.createOffer(onCreateOfferSuccess, onCreateSessionDescriptionError);
-    }
-
-
-    function onIceCandidate(pc, event) {
-        if (event.candidate) {
-            getOtherPc(pc).addIceCandidate(new RTCIceCandidate(event.candidate),
-                function() {
-                    onAddIceCandidateSuccess(pc);
-                },
-                function(err) {
-                    onAddIceCandidateError(pc, err);
-                }
-            );
-            trace(getName(pc) + ' ICE candidate: \n' + event.candidate.candidate);
-        }
-    }
-
-    function onAddIceCandidateSuccess(pc) {
-        trace(getName(pc) + ' addIceCandidate success');
-    }
-
-    function onAddIceCandidateError(pc, error) {
-        trace(getName(pc) + ' failed to add ICE Candidate: ' + error.toString());
-    }
-
-    function onIceStateChange(pc, event) {
-        if (pc) {
-            trace(getName(pc) + ' ICE state: ' + pc.iceConnectionState);
-            console.log('ICE state change event: ', event);
-        }
-    }
-
-	this.offerToReceiveVideo = function(offerSdp, wp){
-		console.log('Invoking SDP offer callback function');
-        this.sendFunction(this.name, offerSdp);
-
-        //console.log('offerSdp ' + JSON.stringify(offerSdp));
-        //var msg =  { id : "receiveVideoFrom",
-			//	sender : name,
-			//	sdpOffer : offerSdp
-			//};
-
-		//sendMessage(msg);
-	}
-
 	Object.defineProperty(this, 'rtcPeer', { writable: true});
 
 	this.dispose = function() {
@@ -159,16 +126,23 @@ function Participant(name, sendFunction, isLocalUser) {
             this.stream.stop();
         }
         try {
-            rtcPeer.dispose(); // execution may stop
+            if (rtcPeer) {
+                rtcPeer.dispose(); // execution may stop
+            }
         } catch (e) {
             console.error("Wired thing in rtc peer dispose");
         }
     };
 
     this.requestCreateOffer = function(remoteUserId, value) {
-        var pc = new RTCPeerConnection(servers);
+        var pc = new RTCPeerConnection(qcOpts);
         out[remoteUserId] = pc;
         pc.addStream(this.stream);
+        pc.onicecandidate = function(e) {
+            if (e.candidate) {
+                sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
+            }
+        };
         pc.createOffer(
             function(desc) {
                 trace('Created offer\n' + 'desc.sdp');
@@ -191,7 +165,7 @@ function Participant(name, sendFunction, isLocalUser) {
             }
         };
 
-        rtcPeer = new RTCPeerConnection(servers);
+        rtcPeer = new RTCPeerConnection(qcOpts);
         rtcPeer.onaddstream = gotRemoteStream;
         rtcPeer.setRemoteDescription(desc, function() {});
         rtcPeer.createAnswer(
@@ -203,6 +177,12 @@ function Participant(name, sendFunction, isLocalUser) {
             onCreateSessionDescriptionError,
             sdpConstraints
         );
+    }
+
+    this.addIceCandidate = function(remoteUserId, value) {
+        var candidate = new RTCIceCandidate(value.candidate);
+
+        rtcPeer.addIceCandidate(candidate);
     }
 
     this.respondAnswer = function(remoteUserId, value) {
