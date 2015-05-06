@@ -86,10 +86,6 @@
         var participant = new Participant(remoteUserId, sendToMessage, false);
         participants[remoteUserId] = participant;
         participant.start();
-
-        //var video = participant.getVideoElement();
-        //participant.rtcPeer = kurentoUtils.WebRtcPeer.startRecvOnly(video,
-        //    participant.offerToReceiveVideo.bind(participant));
     }
 
     function sendChatMessage() {

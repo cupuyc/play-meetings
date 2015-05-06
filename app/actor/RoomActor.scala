@@ -4,7 +4,6 @@ import actor.utils._
 import akka.actor._
 import akka.event.LoggingReceive
 import akka.persistence._
-import org.kurento.client.{MediaPipeline, KurentoClient, WebRtcEndpoint}
 import play.api.Logger
 import play.api.libs.json._
 import play.libs.Akka
@@ -61,28 +60,6 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
     }
   }
 
-  def doUserBroadcast(user: UserInfo, js: JsValue) = {
-    println(s"Broadcast request from ${user.id}")
-    val sdpOffer = (js \ "sdpOffer").as[String]
-
-    // create in stream
-    val sdpAnswer = KurentoService.addBroadcast(user.id, sdpOffer)
-
-    sender !  new SdpAnswerMessage(user.id, sdpAnswer)
-  }
-
-  def doUserSubscribe(user: UserInfo, js: JsValue) = {
-    val subscribeId = (js \ "subscribeId").as[String]
-    println(s"Subscribe request from ${user.id} to $subscribeId")
-    val sdpOffer = (js \ "sdpOffer").as[String]
-
-    // create in stream
-    // create out stream
-    val sdpAnswer = KurentoService.addViewer(subscribeId, user.id, sdpOffer)
-
-    sender !  new SdpAnswerMessage(subscribeId, sdpAnswer)
-  }
-
   def getUserActor(userId: String): Option[ActorRef] = {
     for ((userAct, user) <- users) {
       if (user.id == userId) {
@@ -126,12 +103,6 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
                   case Some(actorRef) => actorRef ! js
                   case None => println("ERROR Cant find send to user " + js.toString())
                 }
-
-              case ("command", "broadcast") =>
-                doUserBroadcast(senderUser, js)
-
-              case ("command", "subscribe") =>
-                doUserSubscribe(senderUser, js)
 
               case ("command", "clear") =>
                   broadcastAll(new ChatClear().toJson, true)
@@ -224,8 +195,6 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
           }
           userAct ! new ChangeBracketMessage(Prefix.USER, removeUser.id, null)
         }
-
-        KurentoService.release(removeUser.id)
 
       case _ => println("Error: leave user wasn't found " + actorRef)
     }

@@ -32,7 +32,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.4" % "test"
 
 libraryDependencies += "commons-io" % "commons-io" % "2.4" % "test"
 
-libraryDependencies += "org.kurento" % "kurento-client" % "5.1.0"
+//libraryDependencies += "org.kurento" % "kurento-client" % "5.1.0"
 
 // Akka Persistence Storage Plugin
 // libraryDependencies += "com.github.ironfish" %% "akka-persistence-mongo-casbah" % "0.7.5-SNAPSHOT"
