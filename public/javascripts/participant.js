@@ -43,11 +43,8 @@ function Participant(name, sendFunction, isLocalUser) {
 
 
     // initialise a configuration for one stun server
-    var qcOpts = {
-        iceServers: [
-            {
-                'url': 'stun:stun.l.google.com:19302'
-            }
+    var servers = {
+        iceServers: [ {'url': 'stun:stun.l.google.com:19302'}
             //"stun.l.google.com:19302",
             //"stun1.l.google.com:19302",
             //"stun2.l.google.com:19302",
@@ -126,8 +123,11 @@ function Participant(name, sendFunction, isLocalUser) {
             this.stream.stop();
         }
         try {
+            for (var remoteUserId in out) {
+                out[remoteUserId].close();
+            }
             if (rtcPeer) {
-                rtcPeer.dispose(); // execution may stop
+                rtcPeer.close();
             }
         } catch (e) {
             console.error("Wired thing in rtc peer dispose");
@@ -135,7 +135,7 @@ function Participant(name, sendFunction, isLocalUser) {
     };
 
     this.requestCreateOffer = function(remoteUserId, value) {
-        var pc = new RTCPeerConnection(qcOpts);
+        var pc = new RTCPeerConnection(servers);
         out[remoteUserId] = pc;
         pc.addStream(this.stream);
         pc.onicecandidate = function(e) {
@@ -165,18 +165,25 @@ function Participant(name, sendFunction, isLocalUser) {
             }
         };
 
-        rtcPeer = new RTCPeerConnection(qcOpts);
+        rtcPeer = new RTCPeerConnection(servers);
         rtcPeer.onaddstream = gotRemoteStream;
-        rtcPeer.setRemoteDescription(desc, function() {});
-        rtcPeer.createAnswer(
-            function onCreateAnswerSuccess(desc) {
-                trace('Created answer:\n' + 'desc.sdp');
-                rtcPeer.setLocalDescription(desc, function() {});
-                sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
-            },
-            onCreateSessionDescriptionError,
-            sdpConstraints
-        );
+        rtcPeer.setRemoteDescription(desc, function() {
+            console.log('setRemoteDescription success');
+            rtcPeer.createAnswer(
+                function onCreateAnswerSuccess(desc) {
+                    console.log('Created answer:\n' + 'desc.sdp');
+                    rtcPeer.setLocalDescription(desc,
+                        function() {
+                            console.log('Set local description from answer.');
+                        },
+                        onSetDescriptionError);
+                    sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
+                },
+                onCreateSessionDescriptionError,
+                sdpConstraints
+            );
+        }, onSetDescriptionError);
+
     }
 
     this.addIceCandidate = function(remoteUserId, value) {
@@ -189,7 +196,11 @@ function Participant(name, sendFunction, isLocalUser) {
         var desc = fixDesc(value.desc);
         var pc = out[remoteUserId];
 
-        pc.setRemoteDescription(desc, function() {});
+        pc.setRemoteDescription(desc,
+            function() {
+                console.log("Set remote description from answer success")
+            },
+            onSetDescriptionError);
         console.log("respondAnswer")
     }
 
@@ -204,10 +215,14 @@ function Participant(name, sendFunction, isLocalUser) {
     function gotRemoteStream(e) {
         // Call the polyfill wrapper to attach the media stream to this element.
         attachMediaStream(video, e.stream);
-        trace('rtcPeer received remote stream');
+        trace("rtcPeer received remote stream");
     }
 
     function onCreateSessionDescriptionError(error) {
-        trace('Failed to create session description: ' + error.toString());
+        trace("Failed to create session description: " + error.message);
+    }
+
+    function onSetDescriptionError(error) {
+        trace("Failed to set description: " + error.message);
     }
 }

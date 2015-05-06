@@ -231,7 +231,7 @@
 
         onSocketMessage = function (e) {
             var m = JSON.parse(e.data);
-            console.log("onSocketMessage " + m.messageType + " " + e.data)
+            console.log("onSocketMessage " + m.messageType + " " + e.data.substr(0, 100))
             if (m.messageType == "youAre") {
                 pid = m.pid;
                 console.log("Set pid " + pid)

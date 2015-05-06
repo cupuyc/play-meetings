@@ -21,7 +21,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object RoomController extends Controller {
 
-  lazy val defaultRoomActorRef = Akka.system().actorOf(Props(new RoomActor("Default")), name = "DefaultRoom")
+  val DEFAULT_ROOM_NAME = "Default"
+
+  lazy val defaultRoomActorRef = Akka.system().actorOf(Props(new RoomActor(DEFAULT_ROOM_NAME)), name = "DefaultRoom")
 
   val hostActorRefs = new mutable.HashMap[String, ActorRef]()
 
