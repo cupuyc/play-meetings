@@ -145,15 +145,17 @@ function Participant(name, sendFunction, isLocalUser) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
         };
-        pc.createOffer(
-            function(desc) {
-                trace('Created offer\n' + 'desc.sdp');
-                pc.setLocalDescription(desc, function() {});
-                sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
-                console.log("createOffer success");
-            },
-            onCreateSessionDescriptionError
-        );
+        pc.onnegotiationneeded = function () {
+            pc.createOffer(
+                function(desc) {
+                    trace('Created offer\n' + 'desc.sdp');
+                    pc.setLocalDescription(desc, function() {});
+                    sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
+                    console.log("createOffer success");
+                },
+                onCreateSessionDescriptionError
+            );
+        }
         console.log("requestCreateOffer");
     }
 
