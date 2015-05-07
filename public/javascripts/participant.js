@@ -146,6 +146,7 @@ function Participant(name, sendFunction, isLocalUser) {
             }
         };
         pc.onnegotiationneeded = function () {
+            console.log("onnegotiationneeded");
             pc.createOffer(
                 function(desc) {
                     trace('Created offer\n' + 'desc.sdp');

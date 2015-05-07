@@ -21,11 +21,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object RoomController extends Controller {
 
-  val DEFAULT_ROOM_NAME = "Default"
+  val DEFAULT_ROOM_NAME = "default"
 
-  lazy val defaultRoomActorRef = Akka.system().actorOf(Props(new RoomActor(DEFAULT_ROOM_NAME)), name = "DefaultRoom")
-
-  val hostActorRefs = new mutable.HashMap[String, ActorRef]()
+  val roomActorRefs = new mutable.HashMap[String, ActorRef]()
 
   val UID = "uid"
   var counter = new AtomicInteger(0)
@@ -38,6 +36,16 @@ object RoomController extends Controller {
     Logger.debug("Joined uid " + uid.toString)
     Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
   }
+
+  def joinRoom(room: String = DEFAULT_ROOM_NAME) = Action { implicit request =>
+    val uid: String = request.session.get(UID) match {
+      case Some(value) => value
+      case _ => counter.getAndIncrement().toString
+    }
+    Logger.debug("Joined uid:" + uid.toString+ " to room:" + room)
+    Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
+  }
+
 
   def logout = Action { implicit request =>
     Redirect("/").withNewSession
@@ -53,7 +61,7 @@ object RoomController extends Controller {
             context.stop(self)
         }
       }))
-      defaultRoomActorRef.tell(msg = AdminStatus, sender = replyTo)
+      getRoomActor(DEFAULT_ROOM_NAME).tell(msg = AdminStatus, sender = replyTo)
       //transforming the actor response to Play result
       p.future.map(
         response => {
@@ -69,10 +77,20 @@ object RoomController extends Controller {
       )
   }
 
-  def stream(room: String = "default") = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
+  def stream(room: String = DEFAULT_ROOM_NAME) = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
     val uid = UUID.randomUUID().toString().substring(0, 4)
-    Future.successful(Right(UserActor.props(uid, defaultRoomActorRef)))
+
+    Future.successful(Right(UserActor.props(uid, getRoomActor(room))))
   }
+
+  /* HELPERS */
+  def getRoomActor(room: String) = {
+    val roomActor = roomActorRefs.get(room).getOrElse(createRoomActor(room))
+    roomActorRefs.put(room, roomActor)
+    roomActor
+  }
+
+  def createRoomActor(room: String) = Akka.system().actorOf(Props(new RoomActor(room)), name = room)
 }
 
 

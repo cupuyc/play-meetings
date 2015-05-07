@@ -25,9 +25,7 @@
 
     $('#participants').css("width", 200 + "px");
 
-    var room = "room";
-    var videoInput;
-    var videoOutput;
+    var room = "default";
     var participants = {};
     var name;
     var broadcasting = false;
@@ -173,7 +171,13 @@
 
     function connect() {
         try {
-            socket = new WebSocket("ws://" + location.host + "/stream/default");
+            var pathArray = window.location.pathname.split( '/' );
+            if (pathArray.length >= 2) {
+                room = pathArray[pathArray.length - 1];
+            }
+            var url = "ws://" + location.host + "/stream/" + room
+            console.log("Connecting to " + url)
+            socket = new WebSocket(url);
             socket.onmessage = onSocketMessage;
             socket.onopen = function (evt) {
                 if (reconnection) {
@@ -230,7 +234,7 @@
             if (m.messageType == "youAre") {
                 pid = m.pid;
                 console.log("Set pid " + pid)
-                $("#localTextArea").html("Your id is " + pid);
+                $("#localTextArea").html("Your id is " + pid + " in " + room);
                 //$("#pid").html("Id: " + pid);
             } else if (m.messageType == "change") {
                 if (m.bracket == "user") {
