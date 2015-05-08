@@ -44,7 +44,22 @@ function Participant(name, sendFunction, isLocalUser) {
 
     // initialise a configuration for one stun server
     var servers = {
-        iceServers: [ {'url': 'stun:stun.l.google.com:19302'}
+        iceServers: [
+            //{'url': 'stun:stun.l.google.com:19302'},
+            //{'url': 'stun:stun1.l.google.com:19302'},
+            //{'url': 'stun:stun2.l.google.com:19302'},
+            //{'url': 'stun:stun3.l.google.com:19302'},
+            //{'url': 'stun:stun4.l.google.com:19302'},
+            //{'url': 'stun:ekiga.net'},
+            //{'url': 'stun:ideasip.com'},
+            //{'url': 'stun:rixtelecom.se'},
+            //{'url': 'stun:schlund.de'}
+
+            {url: "stun:104.130.195.95"},
+            {url: "turn:104.130.198.83"},
+            {url: "turn:104.130.195.95:80?transport=tcp"},
+            {url: "turns:turn2.talky.io:443?transport=tcp"}
+
             //"stun.l.google.com:19302",
             //"stun1.l.google.com:19302",
             //"stun2.l.google.com:19302",
@@ -60,6 +75,24 @@ function Participant(name, sendFunction, isLocalUser) {
             //"stun.voipstunt.com",
             //"stun.voxgratia.org",
             //"stun.services.mozilla.com"
+        ],
+        optional: {
+            googIPv6:true,
+            googImprovedWifiBwe:true,
+            googDscp:true,
+            googSuspendBelowMinBitrate:true,
+            googScreencastMinBitrate:400,
+            andyetAssumeSetLocalSuccess:true,
+            andyetFirefoxMakesMeSad:500
+        }
+    };
+
+    var optional = {
+        optional: [
+            {DtlsSrtpKeyAgreement: true},
+            {googDscp: true},
+            {andyetAssumeSetLocalSuccess: true},
+            {andyetFirefoxMakesMeSad:500}
         ]
     };
 
@@ -76,7 +109,13 @@ function Participant(name, sendFunction, isLocalUser) {
                     alert('getUserMedia() error: ' + e.name);
                 });
         } else {
-            rtcPeer = new RTCPeerConnection(servers);
+            rtcPeer = new RTCPeerConnection(servers, optional);
+            rtcPeer.onicecandidate = function(e) {
+                console.log("onicecandidate " + e.candidate);
+                if (e.candidate) {
+                    sendFunction(userId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
+                }
+            };
             rtcPeer.onaddstream = gotRemoteStream;
             this.sendFunction(userId, {method:"requestCreateOffer", data:null, broadcastId:userId});
         }
@@ -137,10 +176,11 @@ function Participant(name, sendFunction, isLocalUser) {
     };
 
     this.requestCreateOffer = function(remoteUserId, value) {
-        var pc = new RTCPeerConnection(servers);
+        var pc = new RTCPeerConnection(servers, optional);
         out[remoteUserId] = pc;
         pc.addStream(this.stream);
         pc.onicecandidate = function(e) {
+            console.log("onicecandidate " + e.candidate);
             if (e.candidate) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
@@ -191,7 +231,12 @@ function Participant(name, sendFunction, isLocalUser) {
     this.addIceCandidate = function(remoteUserId, value) {
         var candidate = new RTCIceCandidate(value.candidate);
 
-        rtcPeer.addIceCandidate(candidate);
+        if (this.isLocalUser) {
+            var pc = out[remoteUserId];
+            pc.addIceCandidate(candidate)
+        } else {
+            rtcPeer.addIceCandidate(candidate);
+        }
     }
 
     this.respondAnswer = function(remoteUserId, value) {
