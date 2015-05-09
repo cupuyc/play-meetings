@@ -172,11 +172,11 @@
     function connect() {
         try {
             var pathArray = window.location.pathname.split( '/' );
-            if (pathArray.length >= 2) {
+            if (window.location.pathname.length > 1 && pathArray.length >= 2) {
                 room = pathArray[pathArray.length - 1];
             }
             var url = "ws://" + location.host + "/stream/" + room
-            console.log("Connecting to " + url)
+            console.log("Connecting to " + url + " from " + window.location.pathname);
             socket = new WebSocket(url);
             socket.onmessage = onSocketMessage;
             socket.onopen = function (evt) {
