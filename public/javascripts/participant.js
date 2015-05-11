@@ -54,11 +54,28 @@ function Participant(name, sendFunction, isLocalUser) {
             //{'url': 'stun:ideasip.com'},
             //{'url': 'stun:rixtelecom.se'},
             //{'url': 'stun:schlund.de'}
-
+            //{url: "turn:104.130.198.83", username: 'guest'},
+            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
+            //{url: "turns:turn2.talky.io:443?transport=tcp"}
             {url: "stun:104.130.195.95"},
-            {url: "turn:104.130.198.83"},
-            {url: "turn:104.130.195.95:80?transport=tcp"},
-            {url: "turns:turn2.talky.io:443?transport=tcp"}
+            {
+                url: 'turn:numb.viagenie.ca',
+                credential: 'muazkh',
+                username: 'webrtc@live.com'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=udp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=tcp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            }
+            //{url: "turn:104.130.198.83", username: 'guest'},
+            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
+            //{url: "turns:turn2.talky.io:443?transport=tcp"}
 
             //"stun.l.google.com:19302",
             //"stun1.l.google.com:19302",
@@ -75,16 +92,16 @@ function Participant(name, sendFunction, isLocalUser) {
             //"stun.voipstunt.com",
             //"stun.voxgratia.org",
             //"stun.services.mozilla.com"
-        ],
-        optional: {
-            googIPv6:true,
-            googImprovedWifiBwe:true,
-            googDscp:true,
-            googSuspendBelowMinBitrate:true,
-            googScreencastMinBitrate:400,
-            andyetAssumeSetLocalSuccess:true,
-            andyetFirefoxMakesMeSad:500
-        }
+        ]
+        //optional: {
+        //    googIPv6:true,
+        //    googImprovedWifiBwe:true,
+        //    googDscp:true,
+        //    googSuspendBelowMinBitrate:true,
+        //    googScreencastMinBitrate:400,
+        //    andyetAssumeSetLocalSuccess:true,
+        //    andyetFirefoxMakesMeSad:500
+        //}
     };
 
     var optional = {
@@ -185,18 +202,34 @@ function Participant(name, sendFunction, isLocalUser) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
         };
-        pc.onnegotiationneeded = function () {
-            console.log("onnegotiationneeded");
+
+        if ($.browser.mozilla) {
             pc.createOffer(
                 function(desc) {
-                    trace('Created offer\n' + 'desc.sdp');
-                    pc.setLocalDescription(desc, function() {});
+                    trace('Created offer ' + 'desc.sdp' + desc);
+                    pc.setLocalDescription(desc, function() {}, onSetDescriptionError);
                     sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
                     console.log("createOffer success");
                 },
                 onCreateSessionDescriptionError
             );
+        } else {
+            pc.onnegotiationneeded = function () {
+                console.log("onnegotiationneeded");
+                pc.createOffer(
+                    function(desc) {
+                        trace('Created offer\n' + 'desc.sdp');
+                        pc.setLocalDescription(desc, function() {});
+                        sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
+                        console.log("createOffer success");
+                    },
+                    onCreateSessionDescriptionError
+                );
+            }
         }
+
+
+
         console.log("requestCreateOffer");
     }
 
@@ -213,7 +246,7 @@ function Participant(name, sendFunction, isLocalUser) {
             console.log('setRemoteDescription success');
             rtcPeer.createAnswer(
                 function onCreateAnswerSuccess(desc) {
-                    console.log('Created answer:\n' + 'desc.sdp');
+                    console.log('Created answer: ' + 'desc.sdp');
                     rtcPeer.setLocalDescription(desc,
                         function() {
                             console.log('Set local description from answer.');
@@ -230,13 +263,9 @@ function Participant(name, sendFunction, isLocalUser) {
 
     this.addIceCandidate = function(remoteUserId, value) {
         var candidate = new RTCIceCandidate(value.candidate);
-
-        if (this.isLocalUser) {
-            var pc = out[remoteUserId];
-            pc.addIceCandidate(candidate)
-        } else {
-            rtcPeer.addIceCandidate(candidate);
-        }
+        var connection = this.isLocalUser ? out[remoteUserId] : rtcPeer;
+        connection.addIceCandidate(candidate);
+        console.log("Ice candidate processed");
     }
 
     this.respondAnswer = function(remoteUserId, value) {
