@@ -27,6 +27,8 @@ function Participant(name, sendFunction, isLocalUser) {
 
     var stream;
 	var rtcPeer;
+    var isDescriptionFinished = false;
+    var candidatesMap = {};
 
     container.appendChild(video);
     container.appendChild(span);
@@ -93,15 +95,6 @@ function Participant(name, sendFunction, isLocalUser) {
             //"stun.voxgratia.org",
             //"stun.services.mozilla.com"
         ]
-        //optional: {
-        //    googIPv6:true,
-        //    googImprovedWifiBwe:true,
-        //    googDscp:true,
-        //    googSuspendBelowMinBitrate:true,
-        //    googScreencastMinBitrate:400,
-        //    andyetAssumeSetLocalSuccess:true,
-        //    andyetFirefoxMakesMeSad:500
-        //}
     };
 
     var optional = {
@@ -252,6 +245,7 @@ function Participant(name, sendFunction, isLocalUser) {
                             console.log('Set local description from answer.');
                         },
                         onSetDescriptionError);
+                    isDescriptionFinished = true;
                     sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
                 },
                 onCreateSessionDescriptionError,
@@ -264,8 +258,26 @@ function Participant(name, sendFunction, isLocalUser) {
     this.addIceCandidate = function(remoteUserId, value) {
         var candidate = new RTCIceCandidate(value.candidate);
         var connection = this.isLocalUser ? out[remoteUserId] : rtcPeer;
-        connection.addIceCandidate(candidate);
-        console.log("Ice candidate processed");
+        var pendingCandidates = candidatesMap[remoteUserId] || [];
+        if (!isDescriptionFinished) {
+            candidatesMap[remoteUserId] = pendingCandidates;
+            pendingCandidates.push(candidate);
+            console.log("Ice candidate added to pendings");
+        } else {
+            for (var i=0;i<pendingCandidates.length;i++) {
+                var pendingCandidate = pendingCandidates[i];
+                connection.addIceCandidate(pendingCandidate);
+            }
+            connection.addIceCandidate(candidate);
+            console.log("Ice candidate processed");
+        }
+
+        //if (this.isLocalUser) {
+        //    var pc = out[remoteUserId];
+        //    pc.addIceCandidate(candidate)
+        //} else {
+        //    rtcPeer.addIceCandidate(candidate);
+        //}
     }
 
     this.respondAnswer = function(remoteUserId, value) {
@@ -277,6 +289,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 console.log("Set remote description from answer success")
             },
             onSetDescriptionError);
+        isDescriptionFinished = true;
         console.log("respondAnswer")
     }
 
