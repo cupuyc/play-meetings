@@ -12,18 +12,22 @@ const PARTICIPANT_CLASS = 'participant';
  */
 function Participant(name, sendFunction, isLocalUser) {
     var userId = name;
-	this.name = name;
+    this.name = name;
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
 
     var out = {};
 
-	var container = document.createElement('div');
-	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-	container.id = name;
-	var span = document.createElement('span');
+    var container = document.createElement('div');
+    container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
+    container.id = name;
+    var span = document.createElement('span');
     var video = document.createElement('video');
-    video.setAttribute("style","width:200px");
+    video.setAttribute("style", "width:200px");
+    if (isLocalUser) {
+        video.setAttribute("muted", "true");
+    }
+
 
     var stream;
 	var rtcPeer;
@@ -181,7 +185,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 rtcPeer.close();
             }
         } catch (e) {
-            console.error("Wired thing in rtc peer dispose");
+            console.error("Weird thing in rtc peer dispose " + e);
         }
     };
 
@@ -199,7 +203,7 @@ function Participant(name, sendFunction, isLocalUser) {
         if ($.browser.mozilla) {
             pc.createOffer(
                 function(desc) {
-                    trace('Created offer ' + 'desc.sdp' + desc);
+                    trace('Created offer ' + 'desc.sdp');
                     pc.setLocalDescription(desc, function() {}, onSetDescriptionError);
                     sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
                     console.log("createOffer success");
@@ -211,7 +215,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 console.log("onnegotiationneeded");
                 pc.createOffer(
                     function(desc) {
-                        trace('Created offer\n' + 'desc.sdp');
+                        trace('Created offer ' + 'desc.sdp');
                         pc.setLocalDescription(desc, function() {});
                         sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
                         console.log("createOffer success");
@@ -271,13 +275,6 @@ function Participant(name, sendFunction, isLocalUser) {
             connection.addIceCandidate(candidate);
             console.log("Ice candidate processed");
         }
-
-        //if (this.isLocalUser) {
-        //    var pc = out[remoteUserId];
-        //    pc.addIceCandidate(candidate)
-        //} else {
-        //    rtcPeer.addIceCandidate(candidate);
-        //}
     }
 
     this.respondAnswer = function(remoteUserId, value) {
