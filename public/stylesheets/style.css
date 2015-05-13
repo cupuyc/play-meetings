@@ -1,0 +1,409 @@
+/* COLORS */
+/* -- Dark Gray : #434A54 */
+/* -- Middle Gray : #AAB2BD */
+/* -- Light Gray : #E6E9ED */
+/* -- White : #FFFFFF */
+
+/* WEB-FONTS */
+/* -- Open Sans for a nice sans-serif font */
+@font-face {font-family: "Open Sans Light"; src: url(../fonts/OpenSans-Light.ttf) format('truetype')}
+@font-face {font-family: "Open Sans Regular"; src: url(../fonts/OpenSans-Regular.ttf) format('truetype')}
+@font-face {font-family: "Open Sans Bold"; src: url(../fonts/OpenSans-Bold.ttf) format('truetype')}
+
+/* MAIN STYLES: Here we'll reset predefined style, fine-tune basic settings and make a nice typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font: 100%/1.5 "Open Sans Light", Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+    word-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Open Sans Bold", Arial, sans-serif;
+}
+h1 {
+    font-size: 2em;
+}
+h2 {
+    font-size: 1.5em;
+}
+h3 {
+    font-size: 1.17em;
+}
+h4 {
+    font-size: 1em;
+}
+h5 {
+    font-size: 0.83em;
+}
+h6 {
+    font-size: 0.75em;
+}
+p {
+    line-height: 1.5;
+    margin: 0 0 0.5em;
+}
+a, a:visited {
+    text-decoration: underline;
+}
+a:hover {
+    text-decoration: none;
+}
+strong  {
+    font-weight: bold;
+}
+em {
+    font-style: italic;
+}
+code, pre {
+    font-family: monospace, serif;
+    font-size: 1em;
+}
+small {
+    font-size: 65%;
+}
+blockquote {
+    font-style: italic;
+}
+blockquote:before {
+    content: "\201C";
+    display: inline-block;
+    padding-right: .4em;
+}
+blockquote:after {
+    content: "\201D";
+    display: inline-block;
+    padding-right: .4em;
+}
+
+/* MAIN LAYOUT: Main view, sharing, video and chat */
+div.window-all {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    width: 100%;
+    display: -webkit-flex;
+    display: flex;
+    background-color: #434A54;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: stretch;
+    align-items: stretch;
+}
+div.window-main {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    padding: 5px;
+}
+div.window-side {
+    display: -webkit-flex;
+    display: flex;
+    width: 400px;
+    background-color: transparent;
+    padding: 5px;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: stretch;
+    align-items: stretch;
+    -webkit-align-content: stretch;
+    align-content: stretch;
+}
+.head {
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+    height: 30px;
+    padding: 3px;
+    background-color: #AAB2BD;
+    -webkit-align-items: center;
+    align-items: center;
+}
+.head h3 {
+    margin: 0;
+}
+/* SHARING SECTION */
+div.window-sharing {
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    background-color: #E6E9ED;
+    overflow: hidden;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: stretch;
+    align-items: stretch;
+}
+.sharing-display {
+    display: block;
+    height: 100%;
+    margin: 5px;
+    background-color: #FFFFFF;
+    border: 1px solid #AAB2BD;
+    overflow: hidden;
+}
+.sharing-control {
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+    height: 60px;
+    padding: 3px;
+    background-color: #AAB2BD;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+.sharing-control .sharing-zoom {
+    width: 150px;
+}
+.sharing-clear {
+}
+/* VIDEO */
+div.window-video {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 400px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    background-color: #E6E9ED;
+    overflow: hidden;
+    -webkit-order: 1;
+    order: 1;
+    -webkit-flex-grow: 2;
+    flex-grow: 2;
+    -webkit-flex-shrink: 2;
+    flex-shrink: 2;
+}
+.video-display {
+
+}
+.participant {
+    position: relative;
+    display: block;
+    min-width: 160px;
+    height: 160px;
+    margin: 10px;
+    background-color: #000000;
+    background-image: url("../images/no-video.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    border: 1px solid #AAB2BD;
+    -webkit-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);
+    -moz-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);
+    box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);
+}
+/*.video-panel {*/
+    /*position: relative;*/
+    /*display: block;*/
+    /*min-width: 160px;*/
+    /*height: 160px;*/
+    /*margin: 10px;*/
+    /*background-color: #000000;*/
+    /*background-image: url("../images/no-video.png");*/
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    /*background-size: 50%;*/
+    /*border: 1px solid #AAB2BD;*/
+    /*-webkit-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
+    /*-moz-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
+    /*box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
+/*}*/
+/*.webcam-video {*/
+    /*display: block;*/
+    /*width: 100%;*/
+    /*height: 100%;*/
+    /*background-color: transparent;*/
+/*}*/
+.participant>video {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+/*.video-panel>video {*/
+    /*display: block;*/
+    /*margin: 0 auto;*/
+    /*max-width: 100%;*/
+    /*max-height: 100%;*/
+/*}*/
+/*.webcam-video>video {*/
+    /*display: block;*/
+    /*margin: 0 auto;*/
+    /*max-width: 100%;*/
+    /*max-height: 100%;*/
+/*}*/
+.video-control {
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    display: block;
+    z-index: 100;
+}
+input[type=range].slider-volume {
+    display: inline-block;
+    width: 100px;
+    margin-left: 3px;
+    -webkit-appearance: none;
+    background-color: transparent;
+}
+.playername {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 100;
+    margin: 0 5px 5px 0;
+    color: #FFF;
+}
+.playername .name {
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+#commandPlayButton {
+    background-color: #C00;
+    border-color: #C00;
+    color: #FFF;
+}
+/* CHAT SECTION */
+div.window-chat {
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+    height: 400px;
+    border-radius: 5px;
+    background-color: #E6E9ED;
+    overflow: hidden;
+    -webkit-order: 2;
+    order: 2;
+    -webkit-flex-grow: 2;
+    flex-grow: 2;
+    -webkit-flex-shrink: 2;
+    flex-shrink: 2;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: stretch;
+    align-items: stretch;
+
+}
+.chat-info {
+
+}
+.chat-display {
+    display: block;
+    height: 100%;
+    margin: 5px;
+    padding: 5px;
+    background-color: #FFFFFF;
+    border: 1px solid #AAB2BD;
+    text-align:left;
+    overflow:auto;
+}
+.chat-control {
+    margin: 5px;
+}
+.my-message {
+    color: #434A54;
+    font-family: "Open Sans Regular";
+    font-size: 14px;
+}
+.other-message {
+    color: #434A54;
+    font-family: "Open Sans Regular";
+    font-size: 14px;
+}
+.other-message strong {
+    color: #540204;
+}
+
+/* Styling INPUT[type='file'] */
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+input[type=range]{
+    -webkit-appearance: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 300px;
+    height: 1px;
+    background: #CCC;
+    border: none;
+    border-radius: 3px;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 8px;
+    background: #FFF;
+    border: 1px solid #CCC;
+    margin-top: -10px;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+    background: #CCC;
+}
+
+#error {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    text-align: center;
+    padding-top: 10%;
+}
+.error {
+    padding: 1px 8px;
+    background-color: #00773b;
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    font-size: 1.4em;
+    font-weight: bold;
+}

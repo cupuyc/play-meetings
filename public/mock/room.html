@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <base target="_blank" />
+    <title>Play Study | Default</title>
+    <script type="text/javascript" src="../javascripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="../stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="../stylesheets/style.css" />
+    <!--<link rel="stylesheet" href="../old.css"/>-->
+</head>
+<body>
+    <!-- New -->
+    <div class="window-all" id="wrapper">
+        <!-- Modal screens -->
+        <div id="error" style="display: none">
+            <noscript>
+                <span class="error">Javascript is not enabled.</span>
+            </noscript>
+        </div>
+        <!-- Left side -->
+        <div class="window-main">
+            <!-- SHARING -->
+            <div class="window-sharing">
+                <!-- Sharing header -->
+                <div class="head">
+                    <h3>Sharing content</h3>
+                </div>
+                <!-- Shared image display panel -->
+                <div class="sharing-display" id="sharing-display">
+                    <img id="sharing-image" src="../images/keep-calm-and-add-your-image.png" alt=""/>
+                </div>
+                <!-- Sharing control panel  -->
+                <div class="sharing-control">
+                    <div class="input-group sharing-zoom">
+                        <input type="text" class="form-control" id="sharing-zoom" aria-label="..." placeholder="Zoom...">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="sharing-zoomout" type="button"><span class="glyphicon glyphicon-zoom-out" aria-hidden="true"></span></button>
+                            <button class="btn btn-default" id="sharing-zoomin" type="button"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+                    <span class="btn btn-default btn-file"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Image<input id="sharing-upload" type="file" accept="image/*"></span>
+                    <button type="button" class="btn btn-default sharing-clear" id="commandClearButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Clear</button>
+                </div>
+            </div>
+        </div>
+        <!-- Right side -->
+        <div class="window-side">
+            <!-- VIDEO -->
+            <div class="window-video">
+                <!-- Video header -->
+                <div class="head">
+                    <h3>Video</h3>
+                </div>
+                <div class="video-display" id="participants">
+                    <div class="participant">
+                        <video id="webcam-me" autoplay="true" muted="muted"></video>
+                        <div class="btn-group video-control">
+                            <button type="button" class="btn btn-default btn-xs" id="webcam-me-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-default btn-xs" id="commandPlayButton"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></button>
+                        </div>
+                        <p class="playername">
+                            Your name: <span id="pname" class="name"></span>
+                            <!--<strong><span id="pid">Id:</span></strong>-->
+                        </p>
+                    </div>
+                </div>
+                <!-- First video panel -->
+                <!--<div class="video-panel">-->
+
+                <!--<div class="video-panel">-->
+                    <!--<div class="webcam-video">-->
+                        <!--<video id="webcam-me"></video>-->
+                    <!--</div>-->
+                    <!--<div class="btn-group video-control">-->
+                        <!--<button type="button" class="btn btn-default btn-xs" id="webcam-me-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
+                        <!--<button type="button" class="btn btn-default btn-xs" id="commandPlayButton"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></button>-->
+                    <!--</div>-->
+                    <!--<p class="playername">-->
+                        <!--Your name: <span id="pname" class="name"></span>-->
+                        <!--&lt;!&ndash;<strong><span id="pid">Id:</span></strong>&ndash;&gt;-->
+                    <!--</p>-->
+                <!--</div>-->
+                <!-- Second video panel -->
+                <!--<div class="video-panel">-->
+                    <!--<video id="webcam-other" src=""></video>-->
+                    <!--<div class="btn-group video-control">-->
+                        <!--<button type="button" class="btn btn-default btn-xs" id="webcam-other-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
+                        <!--<input type="range" class="slider-volume" id="webcam-other-volume" min="0" max="100" value="50" step="1" orient="vertical" />-->
+                    <!--</div>-->
+                <!--</div>-->
+                <!--<div class="video-panel">-->
+                    <!--<div class="webcam-video">-->
+                        <!--<video id="webcam-other" src=""></video>-->
+                    <!--</div>-->
+                    <!--<div class="btn-group video-control">-->
+                        <!--<button type="button" class="btn btn-default btn-xs" id="webcam-other-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
+                        <!--<input type="range" class="slider-volume" id="webcam-other-volume" min="0" max="100" value="50" step="1" orient="vertical" />-->
+                    <!--</div>-->
+                <!--</div>-->
+            </div>
+            <!-- CHAT -->
+            <div class="window-chat">
+                <!-- Chat header -->
+                <div class="head">
+                    <h3>Chat</h3>
+                </div>
+                <!-- Message display panel -->
+                <div class="chat-display" id="chatArea"></div>
+                <!-- Message input and 'send' button -->
+                <div class="input-group chat-control">
+                    <input type="text" class="form-control" id="commandInput" placeholder="Your message..." />
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" id="commandSendButton" type="button">Send</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../javascripts/adapter.js"></script>
+    <script type="text/javascript" src="participant.js"></script>
+    <script type="text/javascript" src="room.js"></script>
+
+    <!--<div id="wrapper">-->
+    <!--<div id="error" style="display: none">-->
+    <!--<noscript>-->
+    <!--<span class="error">Javascript is not enabled.</span>-->
+    <!--</noscript>-->
+    <!--</div>-->
+    <!--<div class="playername">-->
+    <!--<strong> <span id="pname" class="name">your name</span></strong>-->
+    <!--&lt;!&ndash;<strong> <span id="pid">Id:</span></strong> &ndash;&gt;-->
+    <!--</div>-->
+    <!--<div id="main">-->
+    <!--<div id="viewport">-->
+    <!--<label for="localTextArea">Your info</label>-->
+    <!--<p id="localTextArea">Local info</p>-->
+
+    <!--<label for="allTextArea">All info</label>-->
+    <!--<p id="allTextArea">All info</p>-->
+
+    <!--<label for="chatArea">Chat</label>-->
+    <!--<div id="chatArea">-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div>-->
+    <!--<form id="commandForm" role="form" class="form-inline">-->
+    <!--<input type="text" class="form-control" id="commandInput" placeholder="Enter command">-->
+    <!--<button type="button" class="btn btn-primary" id="commandSendButton">Send</button>-->
+    <!--<button type="button" class="btn btn-success" id="commandPlayButton">Broadcast</button>-->
+    <!--<button type="button" class="btn btn-danger" id="commandClearButton">Clear</button>-->
+    <!--</form>-->
+    <!--</div>-->
+    <!--<div id="participants">-->
+    <!--&lt;!&ndash; Place for participants &ndash;&gt;-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<script type="text/javascript" src="../javascripts/adapter.js"></script>-->
+    <!--<script type="text/javascript" src="participant.js"></script>-->
+    <!--<script type="text/javascript" src="room.js"></script>-->
+    <!--<footer>-->
+    <!--<p>-->
+    <!--Scala | Akka => Collaboration-->
+    <!--</p>-->
+    <!--</footer>-->
+    <!--</div>-->
+</body>
+</html>
+
