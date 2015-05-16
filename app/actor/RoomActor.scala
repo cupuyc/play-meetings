@@ -3,29 +3,33 @@ package actor
 import actor.utils._
 import akka.actor._
 import akka.event.LoggingReceive
-import akka.persistence._
 import play.api.Logger
 import play.api.libs.json._
-import play.libs.Akka
 
-import scala.collection.immutable
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
 
 class RoomActor(val roomName: String = "Default") extends Actor with ActorLogging {
 
 
-  var users = mutable.HashMap[ActorRef, UserInfo]()
+  /**
+   * Users pending verification. Wait for client to send "join" message.
+   */
   var pendingUsers = mutable.HashMap[ActorRef, String]()
 
+  /**
+   * Users approved to be part of meeting.
+   */
+  var users = mutable.HashMap[ActorRef, UserInfo]()
+
+  /**
+   * Room state is key-value storage. Each chat message or broadcast activity is represented in this map.
+   */
   var roomState = mutable.HashMap[String, JsValue]()
 
   override def preStart() = {
     println("HostActor start " + roomName + " " + self)
   }
-
 
   override def postStop() = {
     Logger.info("HostActor stop " + roomName)
@@ -81,6 +85,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
         users.get(sender) match {
           case Some(senderUser) =>
             messageTuple match {
+              // ping to keep heroku web socket active
               case ("ping", _) =>
 
               // user may change his name
@@ -99,6 +104,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
                 }
                 broadcastAll(js)
 
+              // send message from one user to other
               case ("sendTo", _) =>
                 val toUserId = (js \ "toUserId").as[String]
                 getUserActor(toUserId) match {
@@ -108,8 +114,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
               case ("command", "clear") =>
                   broadcastAll(new ChatClear().toJson, true)
-                // TODO delete
-                // deleteMessages(0L, true)
+                  // TODO delete
               case ("command", _) =>
                   broadcastAll(new ChatMessage(senderUser.name, (js \ "data").as[String]).toJson, true)
 
@@ -118,7 +123,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
           case _ =>
             messageTuple match {
               // user send initial info during connect
-              // name for now
+              // name for now.
               case ("join", _) =>
                 pendingUsers.get(sender) match {
                   case Some(uid) =>
@@ -135,6 +140,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
         }
 
       } catch {
+        // TODO handle error in more Akka way
         case e: Exception =>
           println("Error " + e.getStackTrace().toString)
       }
@@ -154,8 +160,6 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
 
     case AdminStatus =>
-      val onlineUsers = users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name)
-
       sender ! AdminStatusReply(
         roomName,
         users.values.map(userInfo => "(" + userInfo.id + ")" + userInfo.name),

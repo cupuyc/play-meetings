@@ -92,7 +92,6 @@ class StatusMessage(val local : String, val all: String) extends ServerMessage {
 
 object Converter {
 
-  implicit def messageToString(m: ServerMessage) = m.toJson
+  def messageToString(m: ServerMessage) = m.toJson
 
-//  implicit def stringToMessage(s: String) = Serve
 }

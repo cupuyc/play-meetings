@@ -28,7 +28,6 @@ function Participant(name, sendFunction, isLocalUser) {
         video.setAttribute("muted", "true");
     }
 
-
     var stream;
 	var rtcPeer;
     var isDescriptionFinished = false;
@@ -43,26 +42,10 @@ function Participant(name, sendFunction, isLocalUser) {
 	span.appendChild(document.createTextNode(name));
     video.id = 'video-' + name;
     video.autoplay = true;
-
 	video.controls = false;
 
-
-
-    // initialise a configuration for one stun server
     var servers = {
         iceServers: [
-            //{'url': 'stun:stun.l.google.com:19302'},
-            //{'url': 'stun:stun1.l.google.com:19302'},
-            //{'url': 'stun:stun2.l.google.com:19302'},
-            //{'url': 'stun:stun3.l.google.com:19302'},
-            //{'url': 'stun:stun4.l.google.com:19302'},
-            //{'url': 'stun:ekiga.net'},
-            //{'url': 'stun:ideasip.com'},
-            //{'url': 'stun:rixtelecom.se'},
-            //{'url': 'stun:schlund.de'}
-            //{url: "turn:104.130.198.83", username: 'guest'},
-            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
-            //{url: "turns:turn2.talky.io:443?transport=tcp"}
             {url: "stun:104.130.195.95"},
             {
                 url: 'turn:numb.viagenie.ca',
@@ -79,25 +62,6 @@ function Participant(name, sendFunction, isLocalUser) {
                 credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
                 username: '28224511:1379330808'
             }
-            //{url: "turn:104.130.198.83", username: 'guest'},
-            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
-            //{url: "turns:turn2.talky.io:443?transport=tcp"}
-
-            //"stun.l.google.com:19302",
-            //"stun1.l.google.com:19302",
-            //"stun2.l.google.com:19302",
-            //"stun3.l.google.com:19302",
-            //"stun4.l.google.com:19302",
-            //"stun.ekiga.net",
-            //"stun.ideasip.com",
-            //"stun.rixtelecom.se",
-            //"stun.schlund.de",
-            //"stun.stunprotocol.org:3478",
-            //"stun.voiparound.com",
-            //"stun.voipbuster.com",
-            //"stun.voipstunt.com",
-            //"stun.voxgratia.org",
-            //"stun.services.mozilla.com"
         ]
     };
 

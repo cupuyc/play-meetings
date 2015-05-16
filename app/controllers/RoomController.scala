@@ -29,11 +29,11 @@ object RoomController extends Controller {
   var counter = new AtomicInteger(0)
 
   def index() = Action { implicit request =>
+    // UID is not used right now
     val uid: String = request.session.get(UID) match {
       case Some(value) => value
       case _ => counter.getAndIncrement().toString
     }
-    Logger.debug("Joined uid " + uid.toString)
     Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
   }
 
@@ -42,7 +42,7 @@ object RoomController extends Controller {
       case Some(value) => value
       case _ => counter.getAndIncrement().toString
     }
-    Logger.debug("Joined uid:" + uid.toString+ " to room:" + room)
+    Logger.debug("User visited room:" + room)
     Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
   }
 
@@ -67,7 +67,7 @@ object RoomController extends Controller {
         response => {
           Ok(views.html.admin(
             List[String](
-              "Host: " + response.name,
+              "Room: " + response.name,
               "Users count: " + response.users.size,
               "Users: " + response.users.mkString(","),
               "Messages count: " + response.chatSize
