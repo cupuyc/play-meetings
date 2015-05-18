@@ -94,7 +94,7 @@
     }
 
     function sendChatMessage() {
-        sendChangeMessage("chat." + new Date().getTime(), "<strong>" + pname + ":</strong> " + $("#commandInput").val());
+        sendChangeMessage("chat." + new Date().getTime(), "<span>" + pname + ":</span> " + $("#commandInput").val());
         $("#commandInput").val("");
     }
 
@@ -124,7 +124,7 @@
         if (broadcasting) {
             broadcasting = false;
             $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
-            $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-warning").addClass(broadcasting ? "btn-warning" : "btn-success");
+            $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
             // remove local broadcast object from state
             sendChangeMessage("broadcast." + pid, null);
 
@@ -148,7 +148,7 @@
     function onBroadcastReady() {
         broadcasting = true;
         $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
-        $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-warning").addClass(broadcasting ? "btn-warning" : "btn-success");
+        $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
         // add local broadcast object to state
         sendChangeMessage("broadcast." + pid, true);
     }

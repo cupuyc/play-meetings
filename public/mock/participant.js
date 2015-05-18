@@ -19,27 +19,6 @@ function Participant(name, sendFunction, isLocalUser) {
     var out = {};
 
     if (!this.isLocalUser){
-        //var container = document.createElement('div');
-        //container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-        //container.id = name;
-        //var span = document.createElement('span');
-        //var video = document.createElement('video');
-        ////video.setAttribute("style","width:200px");
-        //
-        //var stream;
-        //var rtcPeer;
-        //
-        //container.appendChild(video);
-        //container.appendChild(span);
-        //container.onclick = switchContainerClass;
-        //
-        //document.getElementById('participants').appendChild(container);
-        //
-        //span.appendChild(document.createTextNode(name));
-        //video.id = 'video-' + name;
-        //video.autoplay = true;
-        //video.controls = false;
-
         var container = document.createElement('div');
         var video = document.createElement('video');
         container.appendChild(video);
@@ -51,11 +30,10 @@ function Participant(name, sendFunction, isLocalUser) {
         btnMute.appendChild(span);
         var sldVolume = document.createElement('input');
         buttons.appendChild(sldVolume);
-        document.getElementById('participants').appendChild(container);
         var nameSpan = document.createElement('span');
         buttons.appendChild(nameSpan);
         nameSpan.appendChild(document.createTextNode(name));
-
+        document.getElementById('participants').appendChild(container);
 
         container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
         container.id = name;
@@ -70,7 +48,7 @@ function Participant(name, sendFunction, isLocalUser) {
         span.className = "glyphicon glyphicon-volume-off";
         span.setAttribute("aria-hidden", "true");
         sldVolume.className = "slider-volume";
-        sldVolume.id = "webcam-other-volume";
+        sldVolume.id = "volume-" + name;
         sldVolume.type = "range";
         sldVolume.min="0";
         sldVolume.max="100";
@@ -79,8 +57,9 @@ function Participant(name, sendFunction, isLocalUser) {
         sldVolume.orient="vertical";
         $(nameSpan).css({
             "float": "right",
-            "margin-right": "5px",
-            "color" : "#FFF"
+            "margin-right": "3px",
+            "color" : "#FFF",
+            "background-color" : "#151515"
         });
 
 
