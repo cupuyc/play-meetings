@@ -3,7 +3,7 @@
     window.onload = function() {
         console.log("Page loaded ...");
         //console = new Console('console', console);
-        $("#sharing-image").draggable();
+        //$("#sharing-image").draggable();
     }
 
     function removeError() {
@@ -123,9 +123,8 @@
         var participant = participants[pid];
         if (broadcasting) {
             broadcasting = false;
-            //$('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
-            //$('#commandPlayButton').css({"background-color": (broadcasting ? "#0C0" : "#C00"), "border-color": (broadcasting ? "#0C0" : "#C00")});
-            $('#commandPlayButton').css({"background-color": "#C00", "border-color": "#C00"});
+            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
+            $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-warning").addClass(broadcasting ? "btn-warning" : "btn-success");
             // remove local broadcast object from state
             sendChangeMessage("broadcast." + pid, null);
 
@@ -148,9 +147,8 @@
 
     function onBroadcastReady() {
         broadcasting = true;
-        //$('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
-        //$('#commandPlayButton').css({"background-color": (broadcasting ? "#0C0" : "#C00"), "border-color": (broadcasting ? "#0C0" : "#C00")});
-        $('#commandPlayButton').css({"background-color": "#0C0", "border-color": "#0C0"});
+        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
+        $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-warning").addClass(broadcasting ? "btn-warning" : "btn-success");
         // add local broadcast object to state
         sendChangeMessage("broadcast." + pid, true);
     }

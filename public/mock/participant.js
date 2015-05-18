@@ -52,8 +52,11 @@ function Participant(name, sendFunction, isLocalUser) {
         var sldVolume = document.createElement('input');
         buttons.appendChild(sldVolume);
         document.getElementById('participants').appendChild(container);
+        var nameSpan = document.createElement('span');
+        buttons.appendChild(nameSpan);
+        nameSpan.appendChild(document.createTextNode(name));
 
-        //container.className = "video-panel";
+
         container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
         container.id = name;
         container.onclick = switchContainerClass;
@@ -74,6 +77,12 @@ function Participant(name, sendFunction, isLocalUser) {
         sldVolume.value="50";
         sldVolume.step="1";
         sldVolume.orient="vertical";
+        $(nameSpan).css({
+            "float": "right",
+            "margin-right": "5px",
+            "color" : "#FFF"
+        });
+
 
         var stream;
         var rtcPeer;
@@ -81,7 +90,6 @@ function Participant(name, sendFunction, isLocalUser) {
         video = document.getElementById("webcam-me");
         var container = video.parentNode;
         video.id = 'video-' + name;
-        //video.autoplay = true;
         video.controls = false;
     }
 
