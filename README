@@ -3,6 +3,7 @@ Play Meetings
 
 This is Play Framework application with Scala| Akka | WebSockets.
 Nowadays all web conferences web software is built with Adobe Flash or desktop app (Adobe Connect, Gotomeeting). This is attempt to check js abilities to achieve the same.
+Past RTMP calls + Flash Media Server Video Streaming replaced with WebSockets + WebRTC p2p video.
 
 ### Features
  - Users presence
