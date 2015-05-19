@@ -66,14 +66,11 @@ section.video {
     height: 180px;
     margin: 10px;
     background-color: #151515;
-    background-image: url("../images/no-video.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 50%;
+    /*background-image: url("../images/no-video.png");*/
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    /*background-size: 50%;*/
     border: 1px solid #282828;
-    /*-webkit-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
-    /*-moz-box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
-    /*box-shadow: 0px 0px 3px 1px rgba(170,178,189,1);*/
 }
 .participant>video {
     display: block;
@@ -96,6 +93,12 @@ input[type=range].slider-volume {
     margin-left: 3px;
     -webkit-appearance: none;
     background-color: transparent;
+}
+.username {
+    float: right;
+    margin-right: 3px;
+    color : #FFF;
+    background-color : #151515;
 }
 section.chat {
     display: block;

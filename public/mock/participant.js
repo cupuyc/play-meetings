@@ -15,6 +15,7 @@ function Participant(name, sendFunction, isLocalUser) {
 	this.name = name;
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
+    console.log(name);
 
     var out = {};
 
@@ -24,15 +25,15 @@ function Participant(name, sendFunction, isLocalUser) {
         container.appendChild(video);
         var buttons = document.createElement('div');
         container.appendChild(buttons);
-        var btnMute = document.createElement('button');
-        buttons.appendChild(btnMute);
-        var span = document.createElement('span');
-        btnMute.appendChild(span);
-        var sldVolume = document.createElement('input');
-        buttons.appendChild(sldVolume);
+        //var btnMute = document.createElement('button');
+        //buttons.appendChild(btnMute);
+        //var span = document.createElement('span');
+        //btnMute.appendChild(span);
+        //var sldVolume = document.createElement('input');
+        //buttons.appendChild(sldVolume);
         var nameSpan = document.createElement('span');
         buttons.appendChild(nameSpan);
-        nameSpan.appendChild(document.createTextNode(name));
+        //nameSpan.appendChild(document.createTextNode(name));
         document.getElementById('participants').appendChild(container);
 
         container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
@@ -42,25 +43,20 @@ function Participant(name, sendFunction, isLocalUser) {
         video.autoplay = true;
         video.controls = false;
         buttons.className = "btn-group video-control";
-        btnMute.type = "button";
-        btnMute.className = "btn btn-default btn-xs";
-        btnMute.id = "webcam-other-mute";
-        span.className = "glyphicon glyphicon-volume-off";
-        span.setAttribute("aria-hidden", "true");
-        sldVolume.className = "slider-volume";
-        sldVolume.id = "volume-" + name;
-        sldVolume.type = "range";
-        sldVolume.min="0";
-        sldVolume.max="100";
-        sldVolume.value="50";
-        sldVolume.step="1";
-        sldVolume.orient="vertical";
-        $(nameSpan).css({
-            "float": "right",
-            "margin-right": "3px",
-            "color" : "#FFF",
-            "background-color" : "#151515"
-        });
+        //btnMute.type = "button";
+        //btnMute.className = "btn btn-default btn-xs";
+        //btnMute.id = "webcam-other-mute";
+        //span.className = "glyphicon glyphicon-volume-off";
+        //span.setAttribute("aria-hidden", "true");
+        //sldVolume.className = "slider-volume";
+        //sldVolume.id = "volume-" + name;
+        //sldVolume.type = "range";
+        //sldVolume.min="0";
+        //sldVolume.max="100";
+        //sldVolume.value="50";
+        //sldVolume.step="1";
+        //sldVolume.orient="vertical";
+        nameSpan.className = "username";
 
 
         var stream;
