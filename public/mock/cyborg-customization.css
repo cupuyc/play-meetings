@@ -55,6 +55,10 @@ section.video {
     cursor: pointer;
     color: #fff;
 }
+.playername .room {
+    font-size: 1.2em;
+    color: #fff;
+}
 .btn-broadcast {
     float: right;
     margin-left: 50px;
@@ -200,4 +204,8 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 .video::-webkit-scrollbar-thumb {
     border-radius: 8px;
     background-color: rgba(60,60,60, .6);
+}
+/* Support rules */
+.hidden {
+    display: none;
 }

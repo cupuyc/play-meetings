@@ -16,7 +16,7 @@
     <div class="panel panel-default">
         <div class="panel-body">
             <section class="video" id="participants">
-                <div class="participant">
+                <div class="participant hidden" id="me">
                     <video id="webcam-me" autoplay="true" muted="muted"></video>
                     <!--<div class="btn-group video-control">-->
                         <!--<button type="button" class="btn btn-default btn-xs" id="webcam-me-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
@@ -31,7 +31,7 @@
         </div>
         <div class="panel-heading">
             <p class="playername">
-                Your name: <span id="pname" class="name"></span>
+                Your name: <span id="pname" class="name"></span> in room: <span id="room" class="room"></span>
             </p>
             <a class="btn btn-success btn-broadcast" id="commandPlayButton">
                 Start Broadcast

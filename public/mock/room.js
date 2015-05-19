@@ -125,6 +125,7 @@
             broadcasting = false;
             $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
             $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+            $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
             // remove local broadcast object from state
             sendChangeMessage("broadcast." + pid, null);
 
@@ -145,21 +146,18 @@
         }
     });
 
+    $(window).load(function(){
+        $('#room').text(room);
+    });
+
     function onBroadcastReady() {
         broadcasting = true;
         $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
         $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+        $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
         // add local broadcast object to state
         sendChangeMessage("broadcast." + pid, true);
     }
-
-    //$('#commandForm').submit(function (event) {
-    //    // prevent default browser behaviour
-    //    event.preventDefault();
-    //
-    //    sendChatMessage();
-    //});
-
 
 
     // WebSocket
@@ -244,7 +242,6 @@
             if (m.messageType == "youAre") {
                 pid = m.pid;
                 console.log("Set pid " + pid);
-                console.log("Room: " + room);
                 $("#localTextArea").html("Your id is " + pid + " in " + room);
                 //$("#pid").html("Id: " + pid);
             } else if (m.messageType == "change") {
