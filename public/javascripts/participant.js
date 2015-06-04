@@ -15,32 +15,80 @@ function Participant(name, sendFunction, isLocalUser) {
 	this.name = name;
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
+    console.log(name);
 
     var out = {};
 
-	var container = document.createElement('div');
-	container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-	container.id = name;
-	var span = document.createElement('span');
-    var video = document.createElement('video');
-    video.setAttribute("style","width:200px");
+    if (!this.isLocalUser){
+        var container = document.createElement('div');
+        var video = document.createElement('video');
+        container.appendChild(video);
+        var buttons = document.createElement('div');
+        container.appendChild(buttons);
+        //var btnMute = document.createElement('button');
+        //buttons.appendChild(btnMute);
+        //var span = document.createElement('span');
+        //btnMute.appendChild(span);
+        //var sldVolume = document.createElement('input');
+        //buttons.appendChild(sldVolume);
+        var nameSpan = document.createElement('span');
+        buttons.appendChild(nameSpan);
+        //nameSpan.appendChild(document.createTextNode(name));
+        document.getElementById('participants').appendChild(container);
 
-    var stream;
-	var rtcPeer;
-    var isDescriptionFinished = false;
-    var candidatesMap = {};
+        container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
+        container.id = name;
+        container.onclick = switchContainerClass;
+        video.id = 'video-' + name;
+        video.autoplay = true;
+        video.controls = false;
+        buttons.className = "btn-group video-control";
+        //btnMute.type = "button";
+        //btnMute.className = "btn btn-default btn-xs";
+        //btnMute.id = "webcam-other-mute";
+        //span.className = "glyphicon glyphicon-volume-off";
+        //span.setAttribute("aria-hidden", "true");
+        //sldVolume.className = "slider-volume";
+        //sldVolume.id = "volume-" + name;
+        //sldVolume.type = "range";
+        //sldVolume.min="0";
+        //sldVolume.max="100";
+        //sldVolume.value="50";
+        //sldVolume.step="1";
+        //sldVolume.orient="vertical";
+        nameSpan.className = "username";
 
-    container.appendChild(video);
-    container.appendChild(span);
-    container.onclick = switchContainerClass;
 
-	document.getElementById('participants').appendChild(container);
+        var stream;
+        var rtcPeer;
+    } else {
+        video = document.getElementById("webcam-me");
+        var container = video.parentNode;
+        video.id = 'video-' + name;
+        video.controls = false;
+    }
 
-	span.appendChild(document.createTextNode(name));
-    video.id = 'video-' + name;
-    video.autoplay = true;
-
-	video.controls = false;
+	//var container = document.createElement('div');
+	//container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
+	//container.id = name;
+	//var span = document.createElement('span');
+    //var video = document.createElement('video');
+    //video.setAttribute("style","width:200px");
+    //
+    //var stream;
+	//var rtcPeer;
+    //
+    //container.appendChild(video);
+    //container.appendChild(span);
+    //container.onclick = switchContainerClass;
+    //
+	//document.getElementById('participants').appendChild(container);
+    //
+	//span.appendChild(document.createTextNode(name));
+    //video.id = 'video-' + name;
+    //video.autoplay = true;
+    //
+	//video.controls = false;
 
 
 
@@ -56,28 +104,11 @@ function Participant(name, sendFunction, isLocalUser) {
             //{'url': 'stun:ideasip.com'},
             //{'url': 'stun:rixtelecom.se'},
             //{'url': 'stun:schlund.de'}
-            //{url: "turn:104.130.198.83", username: 'guest'},
-            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
-            //{url: "turns:turn2.talky.io:443?transport=tcp"}
+
             {url: "stun:104.130.195.95"},
-            {
-                url: 'turn:numb.viagenie.ca',
-                credential: 'muazkh',
-                username: 'webrtc@live.com'
-            },
-            {
-                url: 'turn:192.158.29.39:3478?transport=udp',
-                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-                username: '28224511:1379330808'
-            },
-            {
-                url: 'turn:192.158.29.39:3478?transport=tcp',
-                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-                username: '28224511:1379330808'
-            }
-            //{url: "turn:104.130.198.83", username: 'guest'},
-            //{url: "turn:104.130.195.95:80?transport=tcp", username: 'guest'},
-            //{url: "turns:turn2.talky.io:443?transport=tcp"}
+            {url: "turn:104.130.198.83"},
+            {url: "turn:104.130.195.95:80?transport=tcp"},
+            {url: "turns:turn2.talky.io:443?transport=tcp"}
 
             //"stun.l.google.com:19302",
             //"stun1.l.google.com:19302",
@@ -94,7 +125,16 @@ function Participant(name, sendFunction, isLocalUser) {
             //"stun.voipstunt.com",
             //"stun.voxgratia.org",
             //"stun.services.mozilla.com"
-        ]
+        ],
+        optional: {
+            googIPv6:true,
+            googImprovedWifiBwe:true,
+            googDscp:true,
+            googSuspendBelowMinBitrate:true,
+            googScreencastMinBitrate:400,
+            andyetAssumeSetLocalSuccess:true,
+            andyetFirefoxMakesMeSad:500
+        }
     };
 
     var optional = {
@@ -117,6 +157,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 }, this.gotLocalStream.bind(this),
                 function(e) {
                     alert('getUserMedia() error: ' + e.name);
+
                 });
         } else {
             rtcPeer = new RTCPeerConnection(servers, optional);
@@ -136,6 +177,7 @@ function Participant(name, sendFunction, isLocalUser) {
         // Call the polyfill wrapper to attach the media stream to this element.
         attachMediaStream(video, stream);
         this.stream = stream;
+        console.log(stream);
         var videoTracks = stream.getVideoTracks();
         var audioTracks = stream.getAudioTracks();
         if (videoTracks.length > 0) {
@@ -168,10 +210,14 @@ function Participant(name, sendFunction, isLocalUser) {
 
 	this.dispose = function() {
 		console.log('Disposing participant ' + this.name);
-		container.parentNode.removeChild(container);
+		//container.parentNode.removeChild(container);
 
         if (this.isLocalUser && this.stream) {
+            video.src = "";
             this.stream.stop();
+            video.id = "webcam-me";
+        } else {
+            container.parentNode.removeChild(container);
         }
         try {
             for (var remoteUserId in out) {
@@ -195,34 +241,18 @@ function Participant(name, sendFunction, isLocalUser) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
         };
-
-        if ($.browser.mozilla) {
+        pc.onnegotiationneeded = function () {
+            console.log("onnegotiationneeded");
             pc.createOffer(
                 function(desc) {
-                    trace('Created offer ' + 'desc.sdp' + desc);
-                    pc.setLocalDescription(desc, function() {}, onSetDescriptionError);
+                    trace('Created offer\n' + 'desc.sdp');
+                    pc.setLocalDescription(desc, function() {});
                     sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
                     console.log("createOffer success");
                 },
                 onCreateSessionDescriptionError
             );
-        } else {
-            pc.onnegotiationneeded = function () {
-                console.log("onnegotiationneeded");
-                pc.createOffer(
-                    function(desc) {
-                        trace('Created offer\n' + 'desc.sdp');
-                        pc.setLocalDescription(desc, function() {});
-                        sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
-                        console.log("createOffer success");
-                    },
-                    onCreateSessionDescriptionError
-                );
-            }
         }
-
-
-
         console.log("requestCreateOffer");
     }
 
@@ -239,13 +269,12 @@ function Participant(name, sendFunction, isLocalUser) {
             console.log('setRemoteDescription success');
             rtcPeer.createAnswer(
                 function onCreateAnswerSuccess(desc) {
-                    console.log('Created answer: ' + 'desc.sdp');
+                    console.log('Created answer:\n' + 'desc.sdp');
                     rtcPeer.setLocalDescription(desc,
                         function() {
                             console.log('Set local description from answer.');
                         },
                         onSetDescriptionError);
-                    isDescriptionFinished = true;
                     sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
                 },
                 onCreateSessionDescriptionError,
@@ -257,27 +286,13 @@ function Participant(name, sendFunction, isLocalUser) {
 
     this.addIceCandidate = function(remoteUserId, value) {
         var candidate = new RTCIceCandidate(value.candidate);
-        var connection = this.isLocalUser ? out[remoteUserId] : rtcPeer;
-        var pendingCandidates = candidatesMap[remoteUserId] || [];
-        if (!isDescriptionFinished) {
-            candidatesMap[remoteUserId] = pendingCandidates;
-            pendingCandidates.push(candidate);
-            console.log("Ice candidate added to pendings");
-        } else {
-            for (var i=0;i<pendingCandidates.length;i++) {
-                var pendingCandidate = pendingCandidates[i];
-                connection.addIceCandidate(pendingCandidate);
-            }
-            connection.addIceCandidate(candidate);
-            console.log("Ice candidate processed");
-        }
 
-        //if (this.isLocalUser) {
-        //    var pc = out[remoteUserId];
-        //    pc.addIceCandidate(candidate)
-        //} else {
-        //    rtcPeer.addIceCandidate(candidate);
-        //}
+        if (this.isLocalUser) {
+            var pc = out[remoteUserId];
+            pc.addIceCandidate(candidate)
+        } else {
+            rtcPeer.addIceCandidate(candidate);
+        }
     }
 
     this.respondAnswer = function(remoteUserId, value) {
@@ -289,7 +304,6 @@ function Participant(name, sendFunction, isLocalUser) {
                 console.log("Set remote description from answer success")
             },
             onSetDescriptionError);
-        isDescriptionFinished = true;
         console.log("respondAnswer")
     }
 

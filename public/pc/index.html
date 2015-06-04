@@ -1,58 +1,71 @@
 <!DOCTYPE html>
-<!--
- *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
--->
 <html>
-<head>
-
-    <meta charset="utf-8">
+<head lang="en">
+    <base target="_blank">
     <meta name="description" content="WebRTC code samples">
-    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
     <meta itemprop="description" content="Client-side WebRTC code samples">
     <meta itemprop="image" content="../../../images/webrtc-icon-192x192.png">
     <meta itemprop="name" content="WebRTC code samples">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta id="theme-color" name="theme-color" content="#ffffff">
-
-    <base target="_blank">
-
-    <title>Peer connection</title>
-
-    <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="main.css" />
-
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <base target="_blank" />
+    <title>Play Study | Default</title>
+    <script type="text/javascript" src="../javascripts/jquery-1.7.1.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="../stylesheets/cyborg-bootstrap.min.css"/>
+    <link type="text/css" rel="stylesheet" href="../stylesheets/cyborg-customization.css"/>
 </head>
-
 <body>
 
-<div id="container">
-
-    <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a> <span>Peer connection</span></h1>
-
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video>
-
-    <div>
-        <button id="startButton">Start</button>
-        <button id="callButton">Call</button>
-        <button id="hangupButton">Hang Up</button>
+<div class="wrapper" id="wrapper">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <section class="video" id="participants">
+                <div class="participant hidden" id="me">
+                    <video id="webcam-me" autoplay="true" muted="muted"></video>
+                    <!--<div class="btn-group video-control">-->
+                    <!--<button type="button" class="btn btn-default btn-xs" id="webcam-me-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
+                    <!--<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></button>-->
+                    <!--</div>-->
+                </div>
+            </section>
+            <section class="chat">
+                <div class="chat-display" id="chatArea">
+                </div>
+            </section>
+        </div>
+        <div class="panel-heading">
+            <p class="playername">
+                Your name: <span id="pname" class="name"></span> in room: <span id="room" class="room"></span>
+            </p>
+            <a class="btn btn-success btn-broadcast" id="commandPlayButton">
+                Start Broadcast
+            </a>
+        </div>
+        <div class="panel-footer">
+            <a class="btn btn-default btn-clear" id="commandClearButton">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Clear
+            </a>
+            <div class="input-group">
+                <span class="input-group-addon">You:</span>
+                <input type="text" class="form-control" placeholder="Your message..." id="commandInput">
+                <span class="input-group-btn">
+                  <a class="btn btn-primary" type="button" id="commandSendButton">Send</a>
+                </span>
+            </div>
+        </div>
     </div>
-
-    <p>View the console to see logging. The <code>MediaStream</code> object <code>localStream</code>, and the <code>RTCPeerConnection</code> objects <code>localPeerConnection</code> and <code>remotePeerConnection</code> are in global scope, so you can inspect them in the console as well.</p>
-
-    <p>For more information about RTCPeerConnection, see <a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/" title="HTML5 Rocks article about WebRTC by Sam Dutton">Getting Started With WebRTC</a>.</p>
-
-
-    <a href="https://github.com/webrtc/samples/tree/gh-pages/src/content/peerconnection/pc1" title="View source for this page on GitHub" id="viewSource">View source on GitHub</a>
-
 </div>
-
-<script src="adapter.js"></script>
-<script src="main.js"></script>
-
+<!-- Modal screens -->
+<div id="error" style="display: none">
+    <noscript>
+        <span class="error">Javascript is not enabled.</span>
+    </noscript>
+</div>
+<!-- Scripts -->
+<script type="text/javascript" src="../javascripts/adapter.js"></script>
+<script type="text/javascript" src="../javascripts/participant.js"></script>
+<script type="text/javascript" src="../javascripts/room.js"></script>
 </body>
 </html>

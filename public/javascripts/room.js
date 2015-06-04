@@ -3,6 +3,7 @@
     window.onload = function() {
         console.log("Page loaded ...");
         //console = new Console('console', console);
+        //$("#sharing-image").draggable();
     }
 
     function removeError() {
@@ -23,13 +24,12 @@
         return;
     }
 
-    $('#participants').css("width", 200 + "px");
+    //$('#participants').css("width", 200 + "px");
 
     var room = "default";
     var participants = {};
     var name;
     var broadcasting = false;
-
 
     var insideIframe = (window.parent != window);
     var isMobile = /ipad|iphone|android/i.test(navigator.userAgent);
@@ -78,12 +78,12 @@
 
     // send modify state message
     function sendChangeMessage(key, value) {
-        send({messageType: "change", key: key, value: value});
+        send({messageType: "change", key: key, value: value, truename: pname});
     }
 
     // send message to specific user
     function sendToMessage(toUserId, value) {
-        send({messageType: "sendTo", toUserId: toUserId, fromUserId: pid, value: value});
+        send({messageType: "sendTo", toUserId: toUserId, fromUserId: pid, value: value, truename: pname});
     }
 
     function receiveVideo(remoteUserId) {
@@ -94,7 +94,7 @@
     }
 
     function sendChatMessage() {
-        sendChangeMessage("chat." + new Date().getTime(), pname + ": " + $("#commandInput").val());
+        sendChangeMessage("chat." + new Date().getTime(), "<span>" + pname + ":</span> " + $("#commandInput").val());
         $("#commandInput").val("");
     }
 
@@ -106,6 +106,11 @@
     });
 
     $('#commandSendButton').on('click', function (e) {
+        $("#commandInput").trigger("change");
+        //sendChatMessage();
+    }, false);
+
+    $("#commandInput").change(function(){
         sendChatMessage();
     });
 
@@ -118,7 +123,9 @@
         var participant = participants[pid];
         if (broadcasting) {
             broadcasting = false;
-            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
+            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
+            $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+            $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
             // remove local broadcast object from state
             sendChangeMessage("broadcast." + pid, null);
 
@@ -139,19 +146,19 @@
         }
     });
 
+    $(window).load(function(){
+        $('#room').text(room);
+    });
+
     function onBroadcastReady() {
         broadcasting = true;
-        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Broadcast");
+        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
+        $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+        $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
         // add local broadcast object to state
         sendChangeMessage("broadcast." + pid, true);
     }
 
-    $('#commandForm').submit(function (event) {
-        // prevent default browser behaviour
-        event.preventDefault();
-
-        sendChatMessage();
-    });
 
     // WebSocket
     var socket;
@@ -209,6 +216,7 @@
     function doChangeBroadcast(remoteUserId, value) {
         if (remoteUserId != pid) {
             var existingBroadcast = participants[remoteUserId];
+
             if (existingBroadcast && !value) {
                 existingBroadcast.dispose();
                 delete participants[remoteUserId];
@@ -230,15 +238,15 @@
 
         onSocketMessage = function (e) {
             var m = JSON.parse(e.data);
-            console.log("onSocketMessage " + m.messageType + " " + e.data.substr(0, 100))
+            console.log("onSocketMessage " + m.messageType + " " + e.data.substr(0, 100));
             if (m.messageType == "youAre") {
                 pid = m.pid;
-                console.log("Set pid " + pid)
+                console.log("Set pid " + pid);
                 $("#localTextArea").html("Your id is " + pid + " in " + room);
                 //$("#pid").html("Id: " + pid);
             } else if (m.messageType == "change") {
                 if (m.bracket == "user") {
-                    console.log("user change " + m.id + " " + m.value)
+                    console.log("user change " + m.id + " " + m.value);
                     var userId = m.id;
                     var participant = participants[userId];
                     if (m.value == null) {
@@ -248,6 +256,9 @@
                             participant.dispose();
                         }
                     } else {
+                        if (m.value.id && m.value.name) {
+                            $("#"+ m.value.id).find(".username").html(m.value.name);
+                        }
                         if (!participant) {
                             participants[userId] = participant;
                             if (pid != userId) {    // don't subscribe own video
@@ -268,9 +279,12 @@
                 $("#chatArea").html("");
             } else if (m.messageType == "sendTo") {
                 doSendTo(m.fromUserId, m.value);
+                if (m.truename) {
+                    $("#"+ m.fromUserId).find(".username").html(m.truename);
+                }
             } else if (m.messageType == "chatMessage") {
                 var chatArea = $("#chatArea");
-                chatArea.html(chatArea.html() + "<p><strong>" + m.name + ": </strong>" + m.message + "</p>")
+                chatArea.html(chatArea.html() + "<p><span>" + m.name + ": </span>" + m.message + "</p>")
                 chatArea.get(0).scrollTop = chatArea.get(0).scrollHeight;
                 console.log("Append child " + m.message)
             } else if (m.messageType == "status") {

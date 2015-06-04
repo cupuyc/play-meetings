@@ -2,66 +2,43 @@
 
 @main("Default") {
 
-    <div id="error" style="display: none">
-        <noscript>
-            <span class="error">Javascript is not enabled.</span>
-        </noscript>
-    </div>
-
-    <div class="playername">
-        <strong> <span id="pname" class="name">your name</span></strong>
-        <!--<strong> <span id="pid">Id:</span></strong> -->
-    </div>
-
-    <div id="main">
-        <div id="viewport">
-            <label for="localTextArea">Your info</label>
-            <p id="localTextArea">Local info</p>
-
-            <label for="allTextArea">All info</label>
-            <p id="allTextArea">All info</p>
-
-            <label for="chatArea">Chat</label>
-            <div id="chatArea">
+<div class="panel panel-default">
+    <div class="panel-body">
+        <section class="video" id="participants">
+            <div class="participant hidden" id="me">
+                <video id="webcam-me" autoplay="true" muted="muted"></video>
             </div>
-
-            @*<label class="control-label" for="console">Console</label>*@
-            @*<div id="console" class="pre-scrollable" style="height: 150px"></div>*@
-        </div>
-        <div>
-            <form id="commandForm" role="form" class="form-inline">
-                <input type="text" class="form-control" id="commandInput" placeholder="Enter command">
-                <button type="button" class="btn btn-primary" id="commandSendButton">Send</button>
-                <button type="button" class="btn btn-success" id="commandPlayButton">Broadcast</button>
-                <button type="button" class="btn btn-danger" id="commandClearButton">Clear</button>
-
-                @*<form method="POST" action="@routes.RoomController.logout()" target="_self">*@
-                    @*<input type="submit" class="btn btn-danger" value="Logout" />*@
-                @*</form>*@
-            </form>
-        </div>
-
-        @*<div>*@
-            @*<h3>Local stream</h3>*@
-            @*<video id="videoInput" autoplay width="480px" height="360px"*@
-            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
-        @*</div>*@
-
-        @*<div>*@
-            @*<h3>Remote stream</h3>*@
-            @*<video id="videoOutput" autoplay width="480px" height="360px"*@
-            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
-        @*</div>*@
-
-        <div id="participants">
-            <!-- Place for participants -->
+        </section>
+        <section class="chat">
+            <div class="chat-display" id="chatArea">
+            </div>
+        </section>
+    </div>
+    <div class="panel-heading">
+        <p class="playername">
+            Your name: <span id="pname" class="name"></span> in room: <span id="room" class="room"></span>
+        </p>
+        <a class="btn btn-success btn-broadcast" id="commandPlayButton">
+            Start Broadcast
+        </a>
+    </div>
+    <div class="panel-footer">
+        <a class="btn btn-default btn-clear" id="commandClearButton">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Clear
+        </a>
+        <div class="input-group">
+            <span class="input-group-addon">You:</span>
+            <input type="text" class="form-control" placeholder="Your message..." id="commandInput">
+                    <span class="input-group-btn">
+                      <a class="btn btn-primary" type="button" id="commandSendButton">Send</a>
+                    </span>
         </div>
     </div>
-
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
-
-    <script type="text/javascript" src="@routes.Assets.at("/javascripts/room.js")"></script>
-
+</div>
+<div id="error" style="display: none">
+    <noscript>
+        <span class="error">Javascript is not enabled.</span>
+    </noscript>
+</div>
 
 }
