@@ -214,7 +214,10 @@ function Participant(name, sendFunction, isLocalUser) {
 
         if (this.isLocalUser && this.stream) {
             video.src = "";
+            video.id = "webcam-me";
             this.stream.stop();
+        } else if (this.isLocalUser) {
+            video.src = "";
             video.id = "webcam-me";
         } else {
             container.parentNode.removeChild(container);

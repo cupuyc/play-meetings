@@ -6,7 +6,7 @@
     <div class="panel-body">
         <section class="video" id="participants">
             <div class="participant hidden" id="me">
-                <video id="webcam-me" autoplay="true" muted="muted"></video>
+                <video class="webcam-me" id="webcam-me" autoplay="true" muted="muted"></video>
             </div>
         </section>
         <section class="chat">
@@ -16,11 +16,14 @@
     </div>
     <div class="panel-heading">
         <p class="playername">
-            Your name: <span id="pname" class="name"></span> in room: <span id="room" class="room"></span>
+            Your name: <span id="pname" class="name"></span> in room: <span id="room" class="room"></span>.
         </p>
         <a class="btn btn-success btn-broadcast" id="commandPlayButton">
             Start Broadcast
         </a>
+        <p class="users">
+            Users (<span class="users-number" id="users-number">0</span>): <span class="users-list" id="users-list"></span>
+        </p>
     </div>
     <div class="panel-footer">
         <a class="btn btn-default btn-clear" id="commandClearButton">
@@ -40,5 +43,9 @@
         <span class="error">Javascript is not enabled.</span>
     </noscript>
 </div>
+
+<script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/room.js")"></script>
 
 }

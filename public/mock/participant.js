@@ -16,6 +16,7 @@ function Participant(name, sendFunction, isLocalUser) {
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
     console.log(name);
+    this.truename = name;
 
     var out = {};
 
@@ -25,15 +26,8 @@ function Participant(name, sendFunction, isLocalUser) {
         container.appendChild(video);
         var buttons = document.createElement('div');
         container.appendChild(buttons);
-        //var btnMute = document.createElement('button');
-        //buttons.appendChild(btnMute);
-        //var span = document.createElement('span');
-        //btnMute.appendChild(span);
-        //var sldVolume = document.createElement('input');
-        //buttons.appendChild(sldVolume);
         var nameSpan = document.createElement('span');
         buttons.appendChild(nameSpan);
-        //nameSpan.appendChild(document.createTextNode(name));
         document.getElementById('participants').appendChild(container);
 
         container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
@@ -43,19 +37,6 @@ function Participant(name, sendFunction, isLocalUser) {
         video.autoplay = true;
         video.controls = false;
         buttons.className = "btn-group video-control";
-        //btnMute.type = "button";
-        //btnMute.className = "btn btn-default btn-xs";
-        //btnMute.id = "webcam-other-mute";
-        //span.className = "glyphicon glyphicon-volume-off";
-        //span.setAttribute("aria-hidden", "true");
-        //sldVolume.className = "slider-volume";
-        //sldVolume.id = "volume-" + name;
-        //sldVolume.type = "range";
-        //sldVolume.min="0";
-        //sldVolume.max="100";
-        //sldVolume.value="50";
-        //sldVolume.step="1";
-        //sldVolume.orient="vertical";
         nameSpan.className = "username";
 
 
@@ -68,63 +49,13 @@ function Participant(name, sendFunction, isLocalUser) {
         video.controls = false;
     }
 
-	//var container = document.createElement('div');
-	//container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-	//container.id = name;
-	//var span = document.createElement('span');
-    //var video = document.createElement('video');
-    //video.setAttribute("style","width:200px");
-    //
-    //var stream;
-	//var rtcPeer;
-    //
-    //container.appendChild(video);
-    //container.appendChild(span);
-    //container.onclick = switchContainerClass;
-    //
-	//document.getElementById('participants').appendChild(container);
-    //
-	//span.appendChild(document.createTextNode(name));
-    //video.id = 'video-' + name;
-    //video.autoplay = true;
-    //
-	//video.controls = false;
-
-
-
     // initialise a configuration for one stun server
     var servers = {
         iceServers: [
-            //{'url': 'stun:stun.l.google.com:19302'},
-            //{'url': 'stun:stun1.l.google.com:19302'},
-            //{'url': 'stun:stun2.l.google.com:19302'},
-            //{'url': 'stun:stun3.l.google.com:19302'},
-            //{'url': 'stun:stun4.l.google.com:19302'},
-            //{'url': 'stun:ekiga.net'},
-            //{'url': 'stun:ideasip.com'},
-            //{'url': 'stun:rixtelecom.se'},
-            //{'url': 'stun:schlund.de'}
-
             {url: "stun:104.130.195.95"},
             {url: "turn:104.130.198.83"},
             {url: "turn:104.130.195.95:80?transport=tcp"},
             {url: "turns:turn2.talky.io:443?transport=tcp"}
-
-            //"stun.l.google.com:19302",
-            //"stun1.l.google.com:19302",
-            //"stun2.l.google.com:19302",
-            //"stun3.l.google.com:19302",
-            //"stun4.l.google.com:19302",
-            //"stun.ekiga.net",
-            //"stun.ideasip.com",
-            //"stun.rixtelecom.se",
-            //"stun.schlund.de",
-            //"stun.stunprotocol.org:3478",
-            //"stun.voiparound.com",
-            //"stun.voipbuster.com",
-            //"stun.voipstunt.com",
-            //"stun.voxgratia.org",
-            //"stun.services.mozilla.com"
         ],
         optional: {
             googIPv6:true,
@@ -136,7 +67,6 @@ function Participant(name, sendFunction, isLocalUser) {
             andyetFirefoxMakesMeSad:500
         }
     };
-
     var optional = {
         optional: [
             {DtlsSrtpKeyAgreement: true},
@@ -145,7 +75,6 @@ function Participant(name, sendFunction, isLocalUser) {
             {andyetFirefoxMakesMeSad:500}
         ]
     };
-
 
     this.start = function(handler) {
         this.handler = handler;
@@ -213,7 +142,10 @@ function Participant(name, sendFunction, isLocalUser) {
 
         if (this.isLocalUser && this.stream) {
             video.src = "";
+            video.id = "webcam-me";
             this.stream.stop();
+        } else if (this.isLocalUser) {
+            video.src = "";
             video.id = "webcam-me";
         } else {
             container.parentNode.removeChild(container);

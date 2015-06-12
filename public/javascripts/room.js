@@ -1,4 +1,9 @@
 (function () {
+    // UI elements
+    var $usersNumber = $("#users-number");
+    var $usersList = $("#users-list");
+    var $commandPlayButton = $('#commandPlayButton');
+
 
     window.onload = function() {
         console.log("Page loaded ...");
@@ -30,6 +35,7 @@
     var participants = {};
     var name;
     var broadcasting = false;
+    var usersInRoom = {};
 
     var insideIframe = (window.parent != window);
     var isMobile = /ipad|iphone|android/i.test(navigator.userAgent);
@@ -119,18 +125,19 @@
     });
 
     // start or stop local broadcast
-    $('#commandPlayButton').on('click', function (e) {
+    $commandPlayButton.on('click', function (e) {
         var participant = participants[pid];
         if (broadcasting) {
             broadcasting = false;
-            $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
-            $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+            $commandPlayButton.text(broadcasting ? "Stop Broadcast" : "Start Broadcast");
+            $commandPlayButton.removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
             $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
             // remove local broadcast object from state
             sendChangeMessage("broadcast." + pid, null);
 
             if (participant) {
                 delete participants[pid];
+                delete usersInRoom[pid];
                 participant.dispose();
                 console.log("Removing local broadcast")
             }
@@ -152,8 +159,8 @@
 
     function onBroadcastReady() {
         broadcasting = true;
-        $('#commandPlayButton').text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
-        $('#commandPlayButton').removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
+        $commandPlayButton.text(broadcasting ? "Stop Broadcast" : " Start Broadcast");
+        $commandPlayButton.removeClass(broadcasting ? "btn-success" : "btn-danger").addClass(broadcasting ? "btn-danger" : "btn-success");
         $("#me").removeClass(broadcasting ? "hidden" : "").addClass(broadcasting ? "" : "hidden");
         // add local broadcast object to state
         sendChangeMessage("broadcast." + pid, true);
@@ -220,6 +227,7 @@
             if (existingBroadcast && !value) {
                 existingBroadcast.dispose();
                 delete participants[remoteUserId];
+                delete usersInRoom[remoteUserId];
             } else if (!existingBroadcast && value) {
                 receiveVideo(remoteUserId);
             }
@@ -251,6 +259,7 @@
                     var participant = participants[userId];
                     if (m.value == null) {
                         // delete user
+                        delete usersInRoom[userId];
                         if (participant) {
                             delete participants[userId];
                             participant.dispose();
@@ -258,6 +267,7 @@
                     } else {
                         if (m.value.id && m.value.name) {
                             $("#"+ m.value.id).find(".username").html(m.value.name);
+                            usersInRoom[m.value.id] = m.value.name;
                         }
                         if (!participant) {
                             participants[userId] = participant;
@@ -266,6 +276,15 @@
                             }
                         }
                     }
+                    // users in room
+                    var count = 0,
+                        list = "";
+                    for (var i in usersInRoom){
+                        count++;
+                        list = list + usersInRoom[i] + ", ";
+                    }
+                    $usersNumber.html(count);
+                    $usersList.html(list.slice(0,-2));
                 } else if (m.key.indexOf("broadcast.") == 0) {
                     var broadcastUserId = m.key.split(".")[1];
                     doChangeBroadcast(broadcastUserId, m.value);
