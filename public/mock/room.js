@@ -1,14 +1,22 @@
 (function () {
-
     // UI elements
-    var $usersNumber = $("#users-number");
-    var $usersList = $("#users-list");
-    var $commandPlayButton = $('#commandPlayButton');
-
+    var $room = $('#room'),
+        $usersNumber = $("#users-number"),
+        $usersList = $("#users-list"),
+        $commandPlayButton = $('#commandPlayButton'),
+        $pname = $('#pname'),
+        $modalNameQuery = $("#modal-name-query"),
+        $modalNameInput = $("#modal-name-input"),
+        $modalNameSave = $("#modal-name-save"),
+        $modalNameClose1 = $("#modal-name-close1"),
+        $commandInput = $("#commandInput"),
+        $chatArea = $("#chatArea"),
+        $localTextArea = $("#localTextArea"),
+        $allTextArea = $("#allTextArea");
 
     window.onload = function() {
         console.log("Page loaded ...");
-    }
+    };
 
     function removeError() {
         $('#error').fadeOut(500);
@@ -40,24 +48,13 @@
     // STATES
     // Key value store of data
     var roomState = {};    // persisted state: shared content, chat
-
     var pid;
     var pname;
-
     var onSocketMessage;
-
-    // Init pname
-    function queryPname() {
-        var n = prompt("What is your name?");
-        if (n) {
-            localStorage.setItem("pname", n);
-        }
-        return n || pname;
-    }
 
     pname = localStorage.getItem("pname");
     if (!insideIframe && !pname) {
-        pname = queryPname();
+        $pname.trigger("click");
     }
     if (!pname) {
         pname = "User " + Math.floor(100 * Math.random());
@@ -68,13 +65,11 @@
         }
     }, 5000);
 
-
-
     function sendCommand(action) {
-        var commandData = $("#commandInput").val();
+        var commandData = $commandInput.val();
         var data = action || commandData;
         if (data) {
-            $("#commandInput").val("");
+            $commandInput.val("");
             send({messageType: "command", data: data});
         }
     }
@@ -97,23 +92,39 @@
     }
 
     function sendChatMessage() {
-        sendChangeMessage("chat." + new Date().getTime(), "<span>" + pname + ":</span> " + $("#commandInput").val());
-        $("#commandInput").val("");
+        sendChangeMessage("chat." + new Date().getTime(), "<span>" + pname + ":</span> " + $commandInput.val());
+        $commandInput.val("");
     }
 
-    $('#pname').text(pname).click(function (e) {
-        e.preventDefault();
-        pname = queryPname();
+    $pname.text(pname);
+
+    $modalNameQuery.on('shown.bs.modal', function () {
+        $modalNameInput.focus();
+    });
+
+    $modalNameSave.click(function(){
+        var n = $modalNameInput.val();
+        if (n) {
+            localStorage.setItem("pname", n);
+            pname = $modalNameInput.val();
+        }
         send({messageType: "changeName", name: pname});
-        $('#pname').text(pname);
+        $pname.text(pname);
+        $modalNameInput.val("");
+        $modalNameClose1.trigger("click");
+    });
+
+    $modalNameInput.keypress(function(e) {
+        if(e.which == 13) {
+            $modalNameSave.trigger("click");
+        }
     });
 
     $('#commandSendButton').on('click', function (e) {
-        $("#commandInput").trigger("change");
-        //sendChatMessage();
+        $commandInput.trigger("change");
     }, false);
 
-    $("#commandInput").change(function(){
+    $commandInput.change(function(){
         sendChatMessage();
     });
 
@@ -152,7 +163,7 @@
     });
 
     $(window).load(function(){
-        $('#room').text(room);
+        $room.text(room);
     });
 
     function onBroadcastReady() {
@@ -187,7 +198,7 @@
             if (window.location.pathname.length > 1 && pathArray.length >= 2) {
                 room = pathArray[pathArray.length - 1];
             }
-            var url = "ws://" + location.host + "/stream/" + room
+            var url = "ws://" + location.host + "/stream/" + room;
             console.log("Connecting to " + url + " from " + window.location.pathname);
             socket = new WebSocket(url);
             socket.onmessage = onSocketMessage;
@@ -197,7 +208,7 @@
                     return;
                 }
                 connected = true;
-                console.log("websocket on open")
+                console.log("websocket on open");
                 send({messageType: "join", name: pname});
             };
             socket.onclose = function (evt) {
@@ -248,7 +259,7 @@
             if (m.messageType == "youAre") {
                 pid = m.pid;
                 console.log("Set pid " + pid);
-                $("#localTextArea").html("Your id is " + pid + " in " + room);
+                $localTextArea.html("Your id is " + pid + " in " + room);
                 //$("#pid").html("Id: " + pid);
             } else if (m.messageType == "change") {
                 if (m.bracket == "user") {
@@ -278,9 +289,9 @@
                     var broadcastUserId = m.key.split(".")[1];
                     doChangeBroadcast(broadcastUserId, m.value);
                 } else if (m.key.indexOf("chat.") == 0) {
-                    var chatArea = $("#chatArea");
-                    chatArea.html(chatArea.html() + "<p>" + m.value + "</p>");
-                    chatArea.get(0).scrollTop = chatArea.get(0).scrollHeight;
+                    //var $chatArea = $("#chatArea");
+                    $chatArea.html($chatArea.html() + "<p>" + m.value + "</p>");
+                    $chatArea.get(0).scrollTop = $chatArea.get(0).scrollHeight;
                     console.log("Append child " + m.value);
                 }
                 // users in room
@@ -293,21 +304,20 @@
                 $usersNumber.html(count);
                 $usersList.html(list.slice(0,-2));
             } else if (m.messageType == "chatClear") {
-                $("#chatArea").html("");
+                $chatArea.html("");
             } else if (m.messageType == "sendTo") {
                 doSendTo(m.fromUserId, m.value);
                 if (m.truename) {
-                    participants[userId]
                     $("#"+ m.fromUserId).find(".username").html(m.truename);
                 }
             } else if (m.messageType == "chatMessage") {
-                var chatArea = $("#chatArea");
-                chatArea.html(chatArea.html() + "<p><span>" + m.name + ": </span>" + m.message + "</p>")
-                chatArea.get(0).scrollTop = chatArea.get(0).scrollHeight;
+                //var chatArea = $("#chatArea");
+                $chatArea.html($chatArea.html() + "<p><span>" + m.name + ": </span>" + m.message + "</p>")
+                $chatArea.get(0).scrollTop = $chatArea.get(0).scrollHeight;
                 console.log("Append child " + m.message)
             } else if (m.messageType == "status") {
-                $("#localTextArea").html(m.local);
-                $("#allTextArea").html(m.all);
+                $localTextArea.html(m.local);
+                $allTextArea.html(m.all);
             } else if (m.messageType == "sdpAnswerMessage") {
                 var sdpAnswer = m.sdpAnswer;
                 var userId = m.id;
