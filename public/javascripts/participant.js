@@ -25,15 +25,8 @@ function Participant(name, sendFunction, isLocalUser) {
         container.appendChild(video);
         var buttons = document.createElement('div');
         container.appendChild(buttons);
-        //var btnMute = document.createElement('button');
-        //buttons.appendChild(btnMute);
-        //var span = document.createElement('span');
-        //btnMute.appendChild(span);
-        //var sldVolume = document.createElement('input');
-        //buttons.appendChild(sldVolume);
         var nameSpan = document.createElement('span');
         buttons.appendChild(nameSpan);
-        //nameSpan.appendChild(document.createTextNode(name));
         document.getElementById('participants').appendChild(container);
 
         container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
@@ -43,21 +36,7 @@ function Participant(name, sendFunction, isLocalUser) {
         video.autoplay = true;
         video.controls = false;
         buttons.className = "btn-group video-control";
-        //btnMute.type = "button";
-        //btnMute.className = "btn btn-default btn-xs";
-        //btnMute.id = "webcam-other-mute";
-        //span.className = "glyphicon glyphicon-volume-off";
-        //span.setAttribute("aria-hidden", "true");
-        //sldVolume.className = "slider-volume";
-        //sldVolume.id = "volume-" + name;
-        //sldVolume.type = "range";
-        //sldVolume.min="0";
-        //sldVolume.max="100";
-        //sldVolume.value="50";
-        //sldVolume.step="1";
-        //sldVolume.orient="vertical";
         nameSpan.className = "username";
-
 
         var stream;
         var rtcPeer;
@@ -68,73 +47,26 @@ function Participant(name, sendFunction, isLocalUser) {
         video.controls = false;
     }
 
-	//var container = document.createElement('div');
-	//container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-	//container.id = name;
-	//var span = document.createElement('span');
-    //var video = document.createElement('video');
-    //video.setAttribute("style","width:200px");
-    //
-    //var stream;
-	//var rtcPeer;
-    //
-    //container.appendChild(video);
-    //container.appendChild(span);
-    //container.onclick = switchContainerClass;
-    //
-	//document.getElementById('participants').appendChild(container);
-    //
-	//span.appendChild(document.createTextNode(name));
-    //video.id = 'video-' + name;
-    //video.autoplay = true;
-    //
-	//video.controls = false;
-
-
-
     // initialise a configuration for one stun server
     var servers = {
         iceServers: [
-            //{'url': 'stun:stun.l.google.com:19302'},
-            //{'url': 'stun:stun1.l.google.com:19302'},
-            //{'url': 'stun:stun2.l.google.com:19302'},
-            //{'url': 'stun:stun3.l.google.com:19302'},
-            //{'url': 'stun:stun4.l.google.com:19302'},
-            //{'url': 'stun:ekiga.net'},
-            //{'url': 'stun:ideasip.com'},
-            //{'url': 'stun:rixtelecom.se'},
-            //{'url': 'stun:schlund.de'}
-
             {url: "stun:104.130.195.95"},
-            {url: "turn:104.130.198.83"},
-            {url: "turn:104.130.195.95:80?transport=tcp"},
-            {url: "turns:turn2.talky.io:443?transport=tcp"}
-
-            //"stun.l.google.com:19302",
-            //"stun1.l.google.com:19302",
-            //"stun2.l.google.com:19302",
-            //"stun3.l.google.com:19302",
-            //"stun4.l.google.com:19302",
-            //"stun.ekiga.net",
-            //"stun.ideasip.com",
-            //"stun.rixtelecom.se",
-            //"stun.schlund.de",
-            //"stun.stunprotocol.org:3478",
-            //"stun.voiparound.com",
-            //"stun.voipbuster.com",
-            //"stun.voipstunt.com",
-            //"stun.voxgratia.org",
-            //"stun.services.mozilla.com"
-        ],
-        optional: {
-            googIPv6:true,
-            googImprovedWifiBwe:true,
-            googDscp:true,
-            googSuspendBelowMinBitrate:true,
-            googScreencastMinBitrate:400,
-            andyetAssumeSetLocalSuccess:true,
-            andyetFirefoxMakesMeSad:500
-        }
+            {
+                url: 'turn:numb.viagenie.ca',
+                credential: 'muazkh',
+                username: 'webrtc@live.com'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=udp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=tcp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            }
+        ]
     };
 
     var optional = {
@@ -177,7 +109,6 @@ function Participant(name, sendFunction, isLocalUser) {
         // Call the polyfill wrapper to attach the media stream to this element.
         attachMediaStream(video, stream);
         this.stream = stream;
-        console.log(stream);
         var videoTracks = stream.getVideoTracks();
         var audioTracks = stream.getAudioTracks();
         if (videoTracks.length > 0) {
@@ -210,8 +141,6 @@ function Participant(name, sendFunction, isLocalUser) {
 
 	this.dispose = function() {
 		console.log('Disposing participant ' + this.name);
-		//container.parentNode.removeChild(container);
-
         if (this.isLocalUser && this.stream) {
             video.src = "";
             video.id = "webcam-me";
@@ -230,7 +159,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 rtcPeer.close();
             }
         } catch (e) {
-            console.error("Wired thing in rtc peer dispose");
+            console.error("Weird thing in rtc peer dispose " + e);
         }
     };
 
