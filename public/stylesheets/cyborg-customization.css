@@ -51,7 +51,6 @@ section.video {
     overflow: auto;
 }
 .playername {
-    /*float: left;*/
     display: block;
     margin-right: 10px;
 }

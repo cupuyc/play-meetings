@@ -12,10 +12,9 @@ const PARTICIPANT_CLASS = 'participant';
  */
 function Participant(name, sendFunction, isLocalUser) {
     var userId = name;
-	this.name = name;
+    this.name = name;
     this.sendFunction = sendFunction;
     this.isLocalUser = isLocalUser;
-    console.log(name);
 
     var out = {};
 
@@ -37,15 +36,17 @@ function Participant(name, sendFunction, isLocalUser) {
         video.controls = false;
         buttons.className = "btn-group video-control";
         nameSpan.className = "username";
-
-        var stream;
-        var rtcPeer;
     } else {
         video = document.getElementById("webcam-me");
         var container = video.parentNode;
         video.id = 'video-' + name;
         video.controls = false;
     }
+    var stream;
+    var rtcPeer;
+    var isDescriptionFinished = false;
+    var candidatesMap = {};
+
 
     // initialise a configuration for one stun server
     var servers = {
@@ -159,7 +160,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 rtcPeer.close();
             }
         } catch (e) {
-            console.error("Weird thing in rtc peer dispose " + e);
+            console.error("Weird thing in rtc peer dispose ");
         }
     };
 
@@ -173,17 +174,29 @@ function Participant(name, sendFunction, isLocalUser) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
         };
-        pc.onnegotiationneeded = function () {
-            console.log("onnegotiationneeded");
+        if ($.browser.mozilla) {
             pc.createOffer(
                 function(desc) {
-                    trace('Created offer\n' + 'desc.sdp');
-                    pc.setLocalDescription(desc, function() {});
+                    trace('Created offer ' + 'desc.sdp');
+                    pc.setLocalDescription(desc, function() {}, onSetDescriptionError);
                     sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
                     console.log("createOffer success");
                 },
                 onCreateSessionDescriptionError
             );
+        } else {
+            pc.onnegotiationneeded = function () {
+                console.log("onnegotiationneeded");
+                pc.createOffer(
+                    function(desc) {
+                        trace('Created offer ' + 'desc.sdp');
+                        pc.setLocalDescription(desc, function() {});
+                        sendFunction(remoteUserId, {method:"respondCreateOffer", broadcastId:userId, desc:desc});
+                        console.log("createOffer success");
+                    },
+                    onCreateSessionDescriptionError
+                );
+            }
         }
         console.log("requestCreateOffer");
     }
@@ -201,12 +214,13 @@ function Participant(name, sendFunction, isLocalUser) {
             console.log('setRemoteDescription success');
             rtcPeer.createAnswer(
                 function onCreateAnswerSuccess(desc) {
-                    console.log('Created answer:\n' + 'desc.sdp');
+                    console.log('Created answer: ' + 'desc.sdp');
                     rtcPeer.setLocalDescription(desc,
                         function() {
                             console.log('Set local description from answer.');
                         },
                         onSetDescriptionError);
+                    isDescriptionFinished = true;
                     sendFunction(userId, {method:"respondAnswer", broadcastId:userId, desc:desc});
                 },
                 onCreateSessionDescriptionError,
@@ -218,13 +232,27 @@ function Participant(name, sendFunction, isLocalUser) {
 
     this.addIceCandidate = function(remoteUserId, value) {
         var candidate = new RTCIceCandidate(value.candidate);
-
-        if (this.isLocalUser) {
-            var pc = out[remoteUserId];
-            pc.addIceCandidate(candidate)
+        var connection = this.isLocalUser ? out[remoteUserId] : rtcPeer;
+        var pendingCandidates = candidatesMap[remoteUserId] || [];
+        if (!isDescriptionFinished) {
+            candidatesMap[remoteUserId] = pendingCandidates;
+            pendingCandidates.push(candidate);
+            console.log("Ice candidate added to pendings");
         } else {
-            rtcPeer.addIceCandidate(candidate);
+            for (var i=0;i<pendingCandidates.length;i++) {
+                var pendingCandidate = pendingCandidates[i];
+                connection.addIceCandidate(pendingCandidate);
+            }
+            connection.addIceCandidate(candidate);
+            console.log("Ice candidate processed");
         }
+
+        //if (this.isLocalUser) {
+        //    var pc = out[remoteUserId];
+        //    pc.addIceCandidate(candidate)
+        //} else {
+        //    rtcPeer.addIceCandidate(candidate);
+        //}
     }
 
     this.respondAnswer = function(remoteUserId, value) {
@@ -236,6 +264,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 console.log("Set remote description from answer success")
             },
             onSetDescriptionError);
+        isDescriptionFinished = true;
         console.log("respondAnswer")
     }
 
