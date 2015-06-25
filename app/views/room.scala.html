@@ -1,67 +1,85 @@
 @(uid: String)
 
 @main("Default") {
-
-    <div id="error" style="display: none">
-        <noscript>
-            <span class="error">Javascript is not enabled.</span>
-        </noscript>
-    </div>
-
-    <div class="playername">
-        <strong> <span id="pname" class="name">your name</span></strong>
-        <!--<strong> <span id="pid">Id:</span></strong> -->
-    </div>
-
-    <div id="main">
-        <div id="viewport">
-            <label for="localTextArea">Your info</label>
-            <p id="localTextArea">Local info</p>
-
-            <label for="allTextArea">All info</label>
-            <p id="allTextArea">All info</p>
-
-            <label for="chatArea">Chat</label>
-            <div id="chatArea">
+<div class="modal" id="modal-error">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <button type="button" class="close" id="modal-error-close1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title">Error</h6>
             </div>
-
-            @*<label class="control-label" for="console">Console</label>*@
-            @*<div id="console" class="pre-scrollable" style="height: 150px"></div>*@
-        </div>
-        <div>
-            <form id="commandForm" role="form" class="form-inline">
-                <input type="text" class="form-control" id="commandInput" placeholder="Enter command">
-                <button type="button" class="btn btn-primary" id="commandSendButton">Send</button>
-                <button type="button" class="btn btn-success" id="commandPlayButton">Broadcast</button>
-                <button type="button" class="btn btn-danger" id="commandClearButton">Clear</button>
-
-                @*<form method="POST" action="@routes.RoomController.logout()" target="_self">*@
-                    @*<input type="submit" class="btn btn-danger" value="Logout" />*@
-                @*</form>*@
-            </form>
-        </div>
-
-        @*<div>*@
-            @*<h3>Local stream</h3>*@
-            @*<video id="videoInput" autoplay width="480px" height="360px"*@
-            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
-        @*</div>*@
-
-        @*<div>*@
-            @*<h3>Remote stream</h3>*@
-            @*<video id="videoOutput" autoplay width="480px" height="360px"*@
-            @*poster="@routes.Assets.at("images/webrtc.png")"></video>*@
-        @*</div>*@
-
-        <div id="participants">
-            <!-- Place for participants -->
+            <div class="modal-body">
+                <p id="error">Javascript is not enabled.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="modal-error-close2" data-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
-
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
-
-    <script type="text/javascript" src="@routes.Assets.at("/javascripts/room.js")"></script>
-
-
+</div>
+<div class="modal" id="modal-name-query">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" id="modal-name-close1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title">What is your name?</h6>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <span class="input-group-addon" id="basic-addon1">&#64;</span>
+                    <input type="text" class="form-control" id="modal-name-input" placeholder="Username" aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="modal-name-close2" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="modal-name-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <section class="video" id="participants">
+            <noscript>
+                <div class="alert alert-danger text-center" role="alert">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+                    Javascript is not enabled.
+                </div>
+            </noscript>
+            <div class="participant hidden" id="me">
+                <video class="webcam-me" id="webcam-me" autoplay="true" muted="muted"></video>
+            </div>
+        </section>
+        <section class="chat">
+            <div class="chat-display" id="chatArea">
+            </div>
+        </section>
+    </div>
+    <div class="panel-heading">
+        <a class="btn btn-success btn-broadcast" id="commandPlayButton">
+            Start Broadcast
+        </a>
+        <p class="playername">
+            Your name: <span id="pname" class="name" data-toggle="modal" data-target="#modal-name-query"></span> in room: <span id="room" class="room"></span>.
+        </p>
+        <p class="users">
+            Users (<span class="users-number" id="users-number">0</span>): <span class="users-list" id="users-list"></span>
+        </p>
+    </div>
+    <div class="panel-footer">
+        <a class="btn btn-default btn-clear" id="commandClearButton">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Clear
+        </a>
+        <div class="input-group">
+            <span class="input-group-addon">You:</span>
+            <input type="text" class="form-control" placeholder="Your message..." id="commandInput">
+                    <span class="input-group-btn">
+                      <a class="btn btn-primary" type="button" id="commandSendButton">Send</a>
+                    </span>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/adapter.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/participant.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/room.js")"></script>
 }

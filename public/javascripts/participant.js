@@ -18,32 +18,37 @@ function Participant(name, sendFunction, isLocalUser) {
 
     var out = {};
 
-    var container = document.createElement('div');
-    container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
-    container.id = name;
-    var span = document.createElement('span');
-    var video = document.createElement('video');
-    video.setAttribute("style", "width:200px");
-    if (isLocalUser) {
-        video.setAttribute("muted", "true");
-    }
+    if (!this.isLocalUser){
+        var container = document.createElement('div');
+        var video = document.createElement('video');
+        container.appendChild(video);
+        var buttons = document.createElement('div');
+        container.appendChild(buttons);
+        var nameSpan = document.createElement('span');
+        buttons.appendChild(nameSpan);
+        document.getElementById('participants').appendChild(container);
 
+        container.className = isPresentMainParticipant() ? PARTICIPANT_CLASS : PARTICIPANT_MAIN_CLASS;
+        container.id = name;
+        container.onclick = switchContainerClass;
+        video.id = 'video-' + name;
+        video.autoplay = true;
+        video.controls = false;
+        buttons.className = "btn-group video-control";
+        nameSpan.className = "username";
+    } else {
+        video = document.getElementById("webcam-me");
+        var container = video.parentNode;
+        video.id = 'video-' + name;
+        video.controls = false;
+    }
     var stream;
-	var rtcPeer;
+    var rtcPeer;
     var isDescriptionFinished = false;
     var candidatesMap = {};
 
-    container.appendChild(video);
-    container.appendChild(span);
-    container.onclick = switchContainerClass;
 
-	document.getElementById('participants').appendChild(container);
-
-	span.appendChild(document.createTextNode(name));
-    video.id = 'video-' + name;
-    video.autoplay = true;
-	video.controls = false;
-
+    // initialise a configuration for one stun server
     var servers = {
         iceServers: [
             {url: "stun:104.130.195.95"},
@@ -85,6 +90,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 }, this.gotLocalStream.bind(this),
                 function(e) {
                     alert('getUserMedia() error: ' + e.name);
+
                 });
         } else {
             rtcPeer = new RTCPeerConnection(servers, optional);
@@ -136,10 +142,15 @@ function Participant(name, sendFunction, isLocalUser) {
 
 	this.dispose = function() {
 		console.log('Disposing participant ' + this.name);
-		container.parentNode.removeChild(container);
-
         if (this.isLocalUser && this.stream) {
+            video.src = "";
+            video.id = "webcam-me";
             this.stream.stop();
+        } else if (this.isLocalUser) {
+            video.src = "";
+            video.id = "webcam-me";
+        } else {
+            container.parentNode.removeChild(container);
         }
         try {
             for (var remoteUserId in out) {
@@ -149,7 +160,7 @@ function Participant(name, sendFunction, isLocalUser) {
                 rtcPeer.close();
             }
         } catch (e) {
-            console.error("Weird thing in rtc peer dispose " + e);
+            console.error("Weird thing in rtc peer dispose ");
         }
     };
 
@@ -163,7 +174,6 @@ function Participant(name, sendFunction, isLocalUser) {
                 sendFunction(remoteUserId, {method:"addIceCandidate", broadcastId:userId, candidate: e.candidate});
             }
         };
-
         if ($.browser.mozilla) {
             pc.createOffer(
                 function(desc) {
@@ -188,9 +198,6 @@ function Participant(name, sendFunction, isLocalUser) {
                 );
             }
         }
-
-
-
         console.log("requestCreateOffer");
     }
 
@@ -239,6 +246,13 @@ function Participant(name, sendFunction, isLocalUser) {
             connection.addIceCandidate(candidate);
             console.log("Ice candidate processed");
         }
+
+        //if (this.isLocalUser) {
+        //    var pc = out[remoteUserId];
+        //    pc.addIceCandidate(candidate)
+        //} else {
+        //    rtcPeer.addIceCandidate(candidate);
+        //}
     }
 
     this.respondAnswer = function(remoteUserId, value) {
