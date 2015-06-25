@@ -15,7 +15,9 @@
         $commandInput = $("#commandInput"),
         $chatArea = $("#chatArea"),
         $localTextArea = $("#localTextArea"),
-        $allTextArea = $("#allTextArea");
+        $allTextArea = $("#allTextArea"),
+        $modalError = $('#modal-error'),
+        $error = $('#error');
 
     $(window).load(function(){
         $room.text(room);
@@ -23,10 +25,12 @@
     });
 
     function removeError() {
-        $('#error').fadeOut(500);
+        $modalError.modal('hide');
     }
     function setError(message) {
-        $('#error').empty().append($('<span class="error" />').text(message)).fadeIn(500);
+        $error.text(message);
+        $modalError.modal('show');
+
     }
     if (!window.WebSocket) {
         if (window.MozWebSocket)
@@ -100,7 +104,7 @@
     $pname.text(pname);
 
     $modalNameQuery.on('shown.bs.modal', function () {
-        $modalNameInput.focus();
+        $modalNameInput.val("").focus();
     });
 
     $modalNameSave.click(function(){

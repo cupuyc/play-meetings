@@ -18,8 +18,7 @@ p {
 }
 .wrapper {
     display: block;
-    min-width: 600px;
-    max-width: 768px;
+    width: 768px;
     height: 100%;
     margin: 0 auto;
 }
@@ -85,14 +84,10 @@ section.video {
 .participant {
     position: relative;
     display: inline-block;
-    width: 250px;
-    height: 180px;
+    width: 224px;
+    height: 170px;
     margin: 10px;
     background-color: #151515;
-    /*background-image: url("../images/no-video.png");*/
-    /*background-position: center;*/
-    /*background-repeat: no-repeat;*/
-    /*background-size: 50%;*/
     border: 1px solid #282828;
 }
 .participant>video {
@@ -119,7 +114,8 @@ input[type=range].slider-volume {
 }
 .username {
     float: right;
-    margin-right: 3px;
+    margin-right: 5px;
+    padding: 0 3px 0 3px;
     color : #FFF;
     background-color : #151515;
 }
@@ -150,25 +146,8 @@ section.chat {
     margin-left: 50px;
 }
 /* Modal screens */
-#error {
-    position: fixed;
-    z-index: 99999;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    text-align: center;
-    padding-top: 10%;
-}
-.error {
-    padding: 1px 8px;
-    background-color: #00773b;
-    color: #fff;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    font-size: 1.4em;
-    font-weight: bold;
+.alert {
+    margin-top: 10px;
 }
 .modal-dialog {
     z-index: 1060;
@@ -181,6 +160,15 @@ section.chat {
 }
 .modal-footer {
     padding: 10px;
+}
+#modal-error .modal-content {
+    overflow: hidden;
+}
+#modal-error .modal-header {
+    color: #fff;
+}
+#modal-error button.close {
+    opacity: 1;
 }
 /* Custom scrolls */
 .chat-display::-webkit-scrollbar {

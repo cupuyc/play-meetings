@@ -14,10 +14,27 @@
 <body>
 <!-- MODAL WINDOWS -->
 <!-- error window -->
-<div id="error" style="display: none">
-    <noscript>
-        <span class="error">Javascript is not enabled.</span>
-    </noscript>
+<!--<div id="error" style="display: none">-->
+    <!--<noscript>-->
+        <!--<span class="error">Javascript is not enabled.</span>-->
+    <!--</noscript>-->
+<!--</div>-->
+<!-- new error window -->
+<div class="modal" id="modal-error">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" id="modal-error-close1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title">Error</h6>
+            </div>
+            <div class="modal-body">
+                <p id="error">Javascript is not enabled.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="modal-error-close2" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- query name window -->
 <div class="modal" id="modal-name-query">
@@ -47,10 +64,6 @@
             <section class="video" id="participants">
                 <div class="participant hidden" id="me">
                     <video id="webcam-me" autoplay="true" muted="muted"></video>
-                    <!--<div class="btn-group video-control">-->
-                        <!--<button type="button" class="btn btn-default btn-xs" id="webcam-me-mute"><span class="glyphicon glyphicon-volume-off" aria-hidden="true"></span></button>-->
-                        <!--<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></button>-->
-                    <!--</div>-->
                 </div>
             </section>
             <section class="chat">

@@ -1,10 +1,21 @@
 @(uid: String)
 
 @main("Default") {
-<div id="error" style="display: none">
-    <noscript>
-        <span class="error">Javascript is not enabled.</span>
-    </noscript>
+<div class="modal" id="modal-error">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <button type="button" class="close" id="modal-error-close1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title">Error</h6>
+            </div>
+            <div class="modal-body">
+                <p id="error">Javascript is not enabled.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="modal-error-close2" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="modal" id="modal-name-query">
     <div class="modal-dialog">
@@ -29,6 +40,12 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <section class="video" id="participants">
+            <noscript>
+                <div class="alert alert-danger text-center" role="alert">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+                    Javascript is not enabled.
+                </div>
+            </noscript>
             <div class="participant hidden" id="me">
                 <video class="webcam-me" id="webcam-me" autoplay="true" muted="muted"></video>
             </div>
