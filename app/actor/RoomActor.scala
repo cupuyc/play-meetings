@@ -1,5 +1,7 @@
 package actor
 
+import java.io.{PrintWriter, StringWriter}
+
 import actor.utils._
 import akka.actor._
 import akka.event.LoggingReceive
@@ -58,7 +60,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
   }
 
   def getStringValue(js: JsValue, prop: String) = {
-    (js \ prop) match {
+    (js \ prop).getOrElse(JsString("")) match {
       case JsString(value) => value
       case _ => ""
     }
@@ -90,13 +92,13 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
               // user may change his name
               case ("changeName", _) =>
-                val name = (js \ "name").as[String]
+                val name = getStringValue(js, "name")
                 changeUserName(senderUser, name)
 
               // user change state
               case ("change", _) =>
-                val key = (js \ "key").as[String]
-                val value = js \ "value"
+                val key = getStringValue(js, "key")
+                val value = (js \ "value").get
                 if (value == JsNull) {
                   roomState.remove(key)
                 } else {
@@ -106,7 +108,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
               // send message from one user to other
               case ("sendTo", _) =>
-                val toUserId = (js \ "toUserId").as[String]
+                val toUserId = getStringValue(js, "toUserId")
                 getUserActor(toUserId) match {
                   case Some(actorRef) => actorRef ! js
                   case None => println("ERROR Cant find send to user " + js.toString())
@@ -114,9 +116,9 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
               case ("command", "clear") =>
                   broadcastAll(new ChatClear().toJson, true)
-                  // TODO delete
+
               case ("command", _) =>
-                  broadcastAll(new ChatMessage(senderUser.name, (js \ "data").as[String]).toJson, true)
+                  broadcastAll(new ChatMessage(senderUser.name, getStringValue(js, "data")).toJson, true)
 
               case _ => println("ERROR Undefined messageType in " + js.toString())
             }
@@ -127,7 +129,7 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
               case ("join", _) =>
                 pendingUsers.get(sender) match {
                   case Some(uid) =>
-                    val name = (js \ "name").as[String]
+                    val name = getStringValue(js, "name")
                     pendingUsers.remove(sender())
                     doUserJoin(uid, name)
                   case _ => println("ERROR:No pending user found")
@@ -142,7 +144,9 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
       } catch {
         // TODO handle error in more Akka way
         case e: Exception =>
-          println("Error " + e.getStackTrace().toString)
+          val sw = new StringWriter
+          e.printStackTrace(new PrintWriter(sw))
+          println(sw.toString)
       }
 
     // ##### USER CONNECTED #####

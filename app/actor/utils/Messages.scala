@@ -25,7 +25,7 @@ abstract class ServerMessage {
   var messageType: String
 
   def toJson = {
-    var result = new JsObject(Seq())
+    var result = new JsObject(Map())
     for (field <- this.getClass.getDeclaredFields) yield {
       field.setAccessible(true)
       val value = field.get(this).asInstanceOf[Any]
@@ -34,7 +34,9 @@ abstract class ServerMessage {
         case s: String => JsString(s)
         case b: Boolean => JsBoolean(b)
         case js: JsValue => js
-        case _ => new JsUndefined("Unknown obj")
+        case null => JsNull
+        case _ =>
+          JsString("Unknown obj")
       }
       result = result + (field.getName -> jsValue )
     }
