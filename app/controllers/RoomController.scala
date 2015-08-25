@@ -6,18 +6,36 @@ import java.util.concurrent.atomic.AtomicInteger
 import actor.{RoomActor, UserActor}
 import actor.utils.{AdminStatus, AdminStatusReply}
 import akka.actor.{ActorRef, Actor, Props}
+import akka.pattern.ask
 import play.libs.Akka
 import scala.collection.mutable
-import scala.concurrent.Promise
 import scala.concurrent.Future
 
 import play.api.Logger
 import play.api.libs.json.JsValue
-import play.api.mvc.Action
-import play.api.mvc.Controller
-import play.api.mvc.WebSocket
+import play.api.mvc._
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
+
+class UserRequest[A](val user: AuthUser, request: Request[A]) extends WrappedRequest[A](request)
+
+object UserAction extends ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
+
+  val UID = "uid"
+  var counter = new AtomicInteger(0)
+
+  def transform[A](request: Request[A]) = Future.successful {
+    val uid = request.session.get(UID).getOrElse(counter.getAndIncrement().toString)
+    new UserRequest(AuthUser(uid), request)
+  }
+}
+
+case class AuthUser(uid: String)
+
+class UserAuthRequest[A](val user: AuthUser, request: Request[A]) extends WrappedRequest[A](request) {
+
+}
+
 
 object RoomController extends Controller {
 
@@ -25,56 +43,41 @@ object RoomController extends Controller {
 
   val roomActorRefs = new mutable.HashMap[String, ActorRef]()
 
-  val UID = "uid"
-  var counter = new AtomicInteger(0)
-
-  def index() = Action { implicit request =>
+  def index() = UserAction { implicit request =>
     // UID is not used right now
-    val uid: String = request.session.get(UID) match {
-      case Some(value) => value
-      case _ => counter.getAndIncrement().toString
-    }
-    Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
+    val uid: String = request.user.uid
+
+    Ok(views.html.room(uid)).withSession(request.session + (UserAction.UID -> uid))
   }
 
-  def joinRoom(room: String = DEFAULT_ROOM_NAME) = Action { implicit request =>
-    val uid: String = request.session.get(UID) match {
-      case Some(value) => value
-      case _ => counter.getAndIncrement().toString
-    }
+  def joinRoom(room: String = DEFAULT_ROOM_NAME) = UserAction { implicit request =>
+    val uid: String = request.user.uid
+
     Logger.debug("User visited room:" + room)
-    Ok(views.html.room(uid)).withSession(request.session + (UID -> uid))
+    Ok(views.html.room(uid)).withSession(request.session + (UserAction.UID -> uid))
   }
-
 
   def logout = Action { implicit request =>
     Redirect("/").withNewSession
   }
 
   def admin = Action.async {
-    implicit request =>
-      val p = Promise[AdminStatusReply]
-      val replyTo = Akka.system().actorOf(Props(new Actor {
-        def receive = {
-          case reply: AdminStatusReply =>
-            p.success(reply)
-            context.stop(self)
-        }
-      }))
-      getRoomActor(DEFAULT_ROOM_NAME).tell(msg = AdminStatus, sender = replyTo)
-      //transforming the actor response to Play result
-      p.future.map(
-        response => {
-          Ok(views.html.admin(
-            List[String](
-              "Room: " + response.name,
-              "Users count: " + response.users.size,
-              "Users: " + response.users.mkString(","),
-              "Messages count: " + response.chatSize
-            )
-          ))
-        }
+    import akka.util.Timeout
+    import scala.concurrent.duration._
+    implicit val timeout = Timeout(5 seconds)
+
+    (getRoomActor(DEFAULT_ROOM_NAME) ? AdminStatus).map {
+      case response: AdminStatusReply =>
+        Ok(views.html.admin(
+          List[String](
+            "Room: " + response.name,
+            "Users count: " + response.users.size,
+            "Users: " + response.users.mkString(","),
+            "Messages count: " + response.chatSize
+          )
+        )
       )
+    }
   }
 
   def stream(room: String = DEFAULT_ROOM_NAME) = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>

@@ -1,0 +1,6 @@
+package actor
+
+class MonitorActor {
+
+
+}
