@@ -5,6 +5,8 @@ import java.math.BigDecimal
 import akka.actor.ActorRef
 import play.api.libs.json._
 
+import scala.collection.parallel.mutable
+
 object Prefix {
   var USER = "user"
   var CHAT = "chat"
@@ -20,7 +22,7 @@ case class AdminStatus()
 case class AdminStatusReply(name: String, users: Iterable[String], chatSize: Int)
 
 
-abstract class ServerMessage {
+abstract sealed class ServerMessage {
 
   var messageType: String
 
@@ -92,8 +94,56 @@ class StatusMessage(val local : String, val all: String) extends ServerMessage {
 }
 
 
-object Converter {
 
-  def messageToString(m: ServerMessage) = m.toJson
+abstract sealed class ClientMessage {
 
 }
+
+// case class should not be empty
+case class JoinMe(name: String) extends ClientMessage
+case class Ping(fromUserId: String) extends ClientMessage
+case class ChangeName(name: String) extends ClientMessage
+case class ChangeProperty(key: String, value: JsValue) extends ClientMessage
+case class SendTo(toUserId: String, fromUserId: String, value: JsValue, truename: String) extends ClientMessage
+case class ClearChat(fromUserId: String) extends  ClientMessage
+
+
+object Converter {
+
+  val incomingMessageMap = scala.collection.mutable.Map[String, Reads[ClientMessage]]()
+
+  registerClientMessage("join", Json.reads[JoinMe])
+  registerClientMessage("ping", Json.reads[Ping])
+  registerClientMessage("changeName", Json.reads[ChangeName])
+  registerClientMessage("change", Json.reads[ChangeProperty])
+  registerClientMessage("sendTo", Json.reads[SendTo])
+  registerClientMessage("clearChat", Json.reads[ClearChat])
+
+  def registerClientMessage(key: String, reads: Reads[_]) {
+    incomingMessageMap.put(key, reads.asInstanceOf[Reads[ClientMessage]])
+  }
+
+  def toJson(m: ServerMessage) = m.toJson
+
+  def toMessage(js: JsValue): Option[ClientMessage] = {
+    val messageTuple = (getStringValue(js, "messageType"), getStringValue(js, "data"))
+    messageTuple match {
+      case (messageType, _) =>
+        incomingMessageMap.get(messageType) match {
+          case Some(reads) =>
+            js.validate(reads).asOpt
+          case None => None
+        }
+      case _ => None
+    }
+  }
+
+  def getStringValue(js: JsValue, prop: String) = {
+    (js \ prop).getOrElse(JsString("")) match {
+      case JsString(value) => value
+      case _ => ""
+    }
+  }
+}
+
+

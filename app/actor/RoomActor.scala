@@ -13,7 +13,6 @@ import scala.collection.mutable
 
 class RoomActor(val roomName: String = "Default") extends Actor with ActorLogging {
 
-
   /**
    * Users pending verification. Wait for client to send "join" message.
    */
@@ -59,13 +58,6 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
     broadcastMessage(new ChangeBracketMessage(Prefix.USER, user.id, user.toJson))
   }
 
-  def getStringValue(js: JsValue, prop: String) = {
-    (js \ prop).getOrElse(JsString("")) match {
-      case JsString(value) => value
-      case _ => ""
-    }
-  }
-
   def getUserActor(userId: String): Option[ActorRef] = {
     for ((userAct, user) <- users) {
       if (user.id == userId) {
@@ -79,26 +71,16 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
 
     case "print" => println(roomState)
 
-    case js: JsValue =>
+    case (cm : ClientMessage, js: JsValue) =>
       try {
-        //users foreach { user => user._1 ! js}
-        val messageTuple = (getStringValue(js, "messageType"), getStringValue(js, "data"))
-
         users.get(sender) match {
           case Some(senderUser) =>
-            messageTuple match {
-              // ping to keep heroku web socket active
-              case ("ping", _) =>
+            cm match {
+              case Ping(s) => // ping to keep Heroku web socket active
 
-              // user may change his name
-              case ("changeName", _) =>
-                val name = getStringValue(js, "name")
-                changeUserName(senderUser, name)
+              case ChangeName(name) => changeUserName(senderUser, name)
 
-              // user change state
-              case ("change", _) =>
-                val key = getStringValue(js, "key")
-                val value = (js \ "value").get
+              case ChangeProperty(key, value) =>
                 if (value == JsNull) {
                   roomState.remove(key)
                 } else {
@@ -106,41 +88,34 @@ class RoomActor(val roomName: String = "Default") extends Actor with ActorLoggin
                 }
                 broadcastAll(js)
 
-              // send message from one user to other
-              case ("sendTo", _) =>
-                val toUserId = getStringValue(js, "toUserId")
+              case SendTo(toUserId, fromUserId, value, truename) =>
                 getUserActor(toUserId) match {
                   case Some(actorRef) => actorRef ! js
                   case None => println("ERROR Cant find send to user " + js.toString())
                 }
 
-              case ("command", "clear") =>
-                  broadcastAll(new ChatClear().toJson, true)
+              case ClearChat(s) =>
+                broadcastAll(new ChatClear().toJson, true)
 
-              case ("command", _) =>
-                  broadcastAll(new ChatMessage(senderUser.name, getStringValue(js, "data")).toJson, true)
-
-              case _ => println("ERROR Undefined messageType in " + js.toString())
+              //            case SendChat(data) =>
+              //              broadcastAll(new ChatMessage(senderUser.name, getStringValue(js, "data")).toJson, true)
             }
-          case _ =>
-            messageTuple match {
-              // user send initial info during connect
-              // name for now.
-              case ("join", _) =>
+
+          case None =>
+            cm match {
+              case JoinMe(name) =>
                 pendingUsers.get(sender) match {
                   case Some(uid) =>
-                    val name = getStringValue(js, "name")
                     pendingUsers.remove(sender())
                     doUserJoin(uid, name)
                   case _ => println("ERROR:No pending user found")
                 }
-              case ("ping", _) =>
 
-              case _ =>
-                println("ERROR Message from none")
-          }
+              case Ping(s) =>
+
+              case _ => println("ERROR Message from undefined user or not joined yet")
+            }
         }
-
       } catch {
         // TODO handle error in more Akka way
         case e: Exception =>

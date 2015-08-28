@@ -66,18 +66,9 @@
     }
     setInterval(function() {
         if (connected) {
-            send({messageType: "ping"});
+            send({messageType: "ping", fromUserId: pid});
         }
     }, 5000);
-
-    function sendCommand(action) {
-        var commandData = $commandInput.val();
-        var data = action || commandData;
-        if (data) {
-            $commandInput.val("");
-            send({messageType: "command", data: data});
-        }
-    }
 
     // send modify state message
     function sendChangeMessage(key, value) {
@@ -134,7 +125,7 @@
     });
 
     $commandClearButton.on('click', function (e) {
-        sendCommand("clear");
+        send({messageType: "clearChat", fromUserId: pid});
     });
 
     // start or stop local broadcast

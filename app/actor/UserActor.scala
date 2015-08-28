@@ -1,6 +1,6 @@
 package actor
 
-import actor.utils.{ActorSubscribe, ServerMessage}
+import actor.utils.{ClientMessage, Converter, ActorSubscribe, ServerMessage}
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
 import play.api.libs.json._
@@ -17,8 +17,14 @@ class UserActor(var uid: String, roomRef: ActorRef, out: ActorRef) extends Actor
       out ! msg.toJson
     case js: JsValue if sender == roomRef =>
       out ! js
+
     case js: JsValue =>
-      roomRef ! js
+      // parse
+      Converter.toMessage(js) match {
+        case Some(clientMessage) => roomRef ! (clientMessage, js)
+        case _ => println("ERROR Can't parse message from client " + js.toString())
+      }
+
     case other =>
       log.error("UserActor unhandled: " + other)
   }
